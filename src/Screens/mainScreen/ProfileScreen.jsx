@@ -1,3 +1,4 @@
+import { useSelector } from "react-redux";
 import {
   View,
   Text,
@@ -14,6 +15,8 @@ import { Feather } from "@expo/vector-icons";
 
 const ProfileScreen = () => {
   const dispatch = useDispatch();
+
+  const { login } = useSelector((state) => state.auth);
 
   const signOut = () => {
     dispatch(authSignOutUser());
@@ -42,7 +45,7 @@ const ProfileScreen = () => {
           />
         </View>
         <View>
-          <Text style={styles.name}>Natali Romanova</Text>
+          <Text style={styles.name}>{login}</Text>
         </View>
       </View>
     </ImageBackground>

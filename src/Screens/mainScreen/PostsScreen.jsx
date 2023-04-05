@@ -23,7 +23,7 @@ const PostsScreen = () => {
     <NestedScreen.Navigator>
       <NestedScreen.Screen
         options={{
-          title: "Публикации",
+          title: "Posts",
           headerRight: () => (
             <TouchableOpacity onPress={signOut}>
               <Feather

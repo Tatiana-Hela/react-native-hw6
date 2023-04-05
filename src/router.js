@@ -51,6 +51,7 @@ const useRoute = (isAuth) => {
           tabBarIcon: ({ focused, size, color }) => (
             <Feather name="grid" size={size} color={color} />
           ),
+          tabBarItemStyle: { borderRadius: "20px", height: 40, width: 70 },
           tabBarActiveTintColor: "#BDBDBD",
         }}
         name="Posts"
@@ -61,10 +62,10 @@ const useRoute = (isAuth) => {
           tabBarIcon: ({ focused, size, color }) => (
             <Feather name="plus" size={size} color={color} />
           ),
-          tabBarItemStyle: { borderRadius: "20px" },
+          tabBarItemStyle: { borderRadius: "20px", height: 40, width: 70 },
           tabBarActiveBackgroundColor: "#FF6C00",
           tabBarActiveTintColor: "#FFFFFF",
-          title: "Создать публикацию",
+          title: "Create Post",
         }}
         name="Create"
         component={CreatePostsScreen}
@@ -74,7 +75,7 @@ const useRoute = (isAuth) => {
           tabBarIcon: ({ focused, size, color }) => (
             <Feather name="user" size={size} color={color} />
           ),
-          tabBarItemStyle: { borderRadius: "20px" },
+          tabBarItemStyle: { borderRadius: "20px", height: 40, width: 70 },
           tabBarActiveBackgroundColor: "#FF6C00",
           tabBarActiveTintColor: "#FFFFFF",
           headerShown: false,

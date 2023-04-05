@@ -1,4 +1,5 @@
 import { useState, useEffect } from "react";
+import { useSelector } from "react-redux";
 import {
   View,
   StyleSheet,
@@ -34,6 +35,8 @@ const CreatePostsScreen = ({ navigation }) => {
     location: false,
   });
 
+  const { userId, login } = useSelector((state) => state.auth);
+
   const handleCameraReady = () => {
     setIsCameraReady(true);
   };
@@ -44,8 +47,6 @@ const CreatePostsScreen = ({ navigation }) => {
         const photo = await camera.takePictureAsync();
         console.log("photo", photo.uri);
         const location = await Location.getCurrentPositionAsync({});
-        // console.log("latitude", location.coords.latitude);
-        // console.log("longitude", location.coords.longitude);
         setLocation(location);
         setPhoto(photo.uri);
       } catch (error) {
@@ -56,23 +57,23 @@ const CreatePostsScreen = ({ navigation }) => {
     }
   };
 
-  // const uploadPostToServer = async () => {
-  //   const photo = await uploadPhotoToServer();
-
-  //   try {
-  //     const db = getFirestore();
-  //     const newCollectionRef = collection(db, "posts");
-  //     await addDoc(newCollectionRef, {
-  //       photo,
-  //       formValues,
-  //       location,
-  //     });
-  //     console.log(location);
-  //     console.log(`Колекція створена успішно!`);
-  //   } catch (error) {
-  //     console.error("Помилка при створенні колекції:", error);
-  //   }
-  // }
+  const uploadPostToServer = async () => {
+    const photo = await uploadPhotoToServer();
+    try {
+      const db = getFirestore();
+      const newCollectionRef = collection(db, "posts");
+      await addDoc(newCollectionRef, {
+        userId,
+        login,
+        photo,
+        formValues,
+        location: location.coords,
+      });
+      console.log(`The collection was created successfully!`);
+    } catch (error) {
+      console.error(error.message);
+    }
+  };
 
   const uploadPhotoToServer = async () => {
     try {
@@ -83,6 +84,7 @@ const CreatePostsScreen = ({ navigation }) => {
       await uploadBytes(storageRef, file);
       const processedPhoto = await getDownloadURL(storageRef);
       console.log("processedPhoto", processedPhoto);
+      return processedPhoto;
     } catch (error) {
       console.log(error.message);
     }
@@ -97,13 +99,7 @@ const CreatePostsScreen = ({ navigation }) => {
   }, [formValues]);
 
   const sendPhoto = () => {
-    // console.log("navigation", navigation);
-    
-    navigation.navigate("DefaultScreen", {
-      title: formValues.title,
-      location: formValues.location,
-      photo: photo,
-    });
+    navigation.navigate("DefaultScreen");
     setFormValues({ title: "", location: "" });
     setPhoto("");
   };
@@ -170,9 +166,9 @@ const CreatePostsScreen = ({ navigation }) => {
           </TouchableOpacity>
         </Camera>
         {!photo ? (
-          <Text style={styles.text}>Загрузите фото</Text>
+          <Text style={styles.text}>Upload photo</Text>
         ) : (
-          <Text style={styles.text}>Редактировать фото</Text>
+          <Text style={styles.text}>Edit photo</Text>
         )}
         <KeyboardAvoidingView
           behavior={Platform.OS == "ios" ? "padding" : "height"}
@@ -185,7 +181,7 @@ const CreatePostsScreen = ({ navigation }) => {
             <TextInput
               onFocus={() => setIsFocus({ ...isFocus, title: true })}
               onBlur={() => setIsFocus({ ...isFocus, title: false })}
-              placeholder="Название..."
+              placeholder="Name..."
               value={formValues.title}
               onChangeText={(value) =>
                 setFormValues({ ...formValues, title: value })
@@ -205,7 +201,7 @@ const CreatePostsScreen = ({ navigation }) => {
               <TextInput
                 onFocus={() => setIsFocus({ ...isFocus, location: true })}
                 onBlur={() => setIsFocus({ ...isFocus, location: false })}
-                placeholder="Местность..."
+                placeholder="Locality..."
                 value={formValues.location}
                 onChangeText={(value) =>
                   setFormValues({ ...formValues, location: value })
@@ -221,7 +217,7 @@ const CreatePostsScreen = ({ navigation }) => {
             style={[styles.button, !isFormValid && styles.disabledButton]}
             onPress={() => {
               if (isFormValid) {
-                uploadPhotoToServer();
+                uploadPostToServer();
                 sendPhoto();
               }
             }}
@@ -232,7 +228,7 @@ const CreatePostsScreen = ({ navigation }) => {
                 color: isFormValid ? "#FFFFFF" : "#BDBDBD",
               }}
             >
-              Опубликовать
+              Publish
             </Text>
           </TouchableOpacity>
         </KeyboardAvoidingView>
@@ -242,84 +238,84 @@ const CreatePostsScreen = ({ navigation }) => {
 };
 export default CreatePostsScreen;
 
-  const styles = StyleSheet.create({
-    container: {
-      flex: 1,
-      backgroundColor: "#FFFFFF",
-      paddingHorizontal: 16,
-    },
-    camera: {
-      justifyContent: "center",
-      alignItems: "center",
-      marginTop: 32,
-      height: 240,
-      backgroundColor: "#F6F6F6",
-      borderRadius: 8,
-      borderWidth: 1,
-      borderColor: "#E8E8E8",
-      overflow: "hidden",
-    },
-    cameraBtn: {
-      alignItems: "center",
-      justifyContent: "center",
-      width: 60,
-      height: 60,
-      backgroundColor: "#FFFFFF",
-      borderRadius: "50%",
-    },
-    takePhotoContainer: {
-      position: "absolute",
-      top: 0,
-      left: 0,
-      width: "100%",
-      height: "100%",
-    },
-    text: {
-      marginTop: 8,
-      fontSize: 16,
-      lineHeight: 19,
-      color: "#BDBDBD",
-    },
-    input: {
-      marginTop: 32,
-      fontSize: 16,
-      lineHeight: 19,
-      height: 50,
-      borderBottomWidth: 1,
-      borderBottomColor: "#E8E8E8",
-    },
-    button: {
-      backgroundColor: "#FF6C00",
-      borderRadius: 100,
-      height: 51,
-      marginTop: 32,
-      marginBottom: 120,
-      justifyContent: "center",
-      alignItems: "center",
-    },
-    disabledButton: {
-      backgroundColor: "#F6F6F6",
-    },
-    textButton: {
-      color: "#FFFFFF",
-      fontFamily: "Roboto-Regular",
-      fontSize: 16,
-      lineHeight: 19,
-    },
-    inputMapWrapper: {
-      position: "relative",
-    },
-    mapIcon: {
-      position: "absolute",
-      top: 24,
-    },
-    inputMap: {
-      marginTop: 10,
-      paddingLeft: 20,
-      fontSize: 16,
-      lineHeight: 19,
-      height: 50,
-      borderBottomWidth: 1,
-      borderBottomColor: "#E8E8E8",
-    },
-  });
+const styles = StyleSheet.create({
+  container: {
+    flex: 1,
+    backgroundColor: "#FFFFFF",
+    paddingHorizontal: 16,
+  },
+  camera: {
+    justifyContent: "center",
+    alignItems: "center",
+    marginTop: 32,
+    height: 240,
+    backgroundColor: "#F6F6F6",
+    borderRadius: 8,
+    borderWidth: 1,
+    borderColor: "#E8E8E8",
+    overflow: "hidden",
+  },
+  cameraBtn: {
+    alignItems: "center",
+    justifyContent: "center",
+    width: 60,
+    height: 60,
+    backgroundColor: "#FFFFFF",
+    borderRadius: "50%",
+  },
+  takePhotoContainer: {
+    position: "absolute",
+    top: 0,
+    left: 0,
+    width: "100%",
+    height: "100%",
+  },
+  text: {
+    marginTop: 8,
+    fontSize: 16,
+    lineHeight: 19,
+    color: "#BDBDBD",
+  },
+  input: {
+    marginTop: 32,
+    fontSize: 16,
+    lineHeight: 19,
+    height: 50,
+    borderBottomWidth: 1,
+    borderBottomColor: "#E8E8E8",
+  },
+  button: {
+    backgroundColor: "#FF6C00",
+    borderRadius: 100,
+    height: 51,
+    marginTop: 32,
+    marginBottom: 120,
+    justifyContent: "center",
+    alignItems: "center",
+  },
+  disabledButton: {
+    backgroundColor: "#F6F6F6",
+  },
+  textButton: {
+    color: "#FFFFFF",
+    fontFamily: "Roboto-Regular",
+    fontSize: 16,
+    lineHeight: 19,
+  },
+  inputMapWrapper: {
+    position: "relative",
+  },
+  mapIcon: {
+    position: "absolute",
+    top: 24,
+  },
+  inputMap: {
+    marginTop: 10,
+    paddingLeft: 20,
+    fontSize: 16,
+    lineHeight: 19,
+    height: 50,
+    borderBottomWidth: 1,
+    borderBottomColor: "#E8E8E8",
+  },
+});

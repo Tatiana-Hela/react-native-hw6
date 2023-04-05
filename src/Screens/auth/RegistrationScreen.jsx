@@ -75,7 +75,7 @@ const RegistrationScreens = ({ navigation }) => {
             </View>
             <View style={styles.form}>
               <View>
-                <Text style={styles.title}>Регистрация</Text>
+                <Text style={styles.title}>Registration</Text>
               </View>
               <KeyboardAvoidingView
                 behavior={Platform.OS == "ios" ? "padding" : "height"}
@@ -97,7 +97,7 @@ const RegistrationScreens = ({ navigation }) => {
                       setIsFocus({ ...isFocus, login: false });
                     }}
                     placeholderTextColor="#BDBDBD"
-                    placeholder="Логин"
+                    placeholder="Login"
                     value={state.login}
                     onChangeText={(value) =>
                       setState((prevState) => ({ ...prevState, login: value }))
@@ -116,7 +116,7 @@ const RegistrationScreens = ({ navigation }) => {
                     onBlur={() => {
                       setIsFocus({ ...isFocus, email: false });
                     }}
-                    placeholder="Адрес электронной почты"
+                    placeholder="E-mail address"
                     value={state.email}
                     onChangeText={(value) =>
                       setState((prevState) => ({ ...prevState, email: value }))
@@ -135,7 +135,7 @@ const RegistrationScreens = ({ navigation }) => {
                       onBlur={() => {
                         setIsFocus({ ...isFocus, password: false });
                       }}
-                      placeholder="Пароль"
+                      placeholder="Password"
                       value={state.password}
                       onChangeText={(value) =>
                         setState((prevState) => ({
@@ -156,7 +156,7 @@ const RegistrationScreens = ({ navigation }) => {
                         setIsSecureEntry((prevState) => !prevState);
                       }}
                     >
-                      <Text>{isSecureEntry ? "Показать" : "Скрыть"}</Text>
+                      <Text>{isSecureEntry ? "Show" : "Hide"}</Text>
                     </TouchableOpacity>
                   </View>
                 </View>
@@ -166,7 +166,7 @@ const RegistrationScreens = ({ navigation }) => {
                 onPress={handleSubmit}
                 style={styles.button}
               >
-                <Text style={styles.textButton}>Зарегистрироваться</Text>
+                <Text style={styles.textButton}>Register</Text>
               </TouchableOpacity>
             </View>
             <TouchableOpacity>
@@ -174,7 +174,7 @@ const RegistrationScreens = ({ navigation }) => {
                 style={styles.textLink}
                 onPress={() => navigation.navigate("Login")}
               >
-                Уже есть аккаунт? Войти
+                Already have an account? Sign In
               </Text>
             </TouchableOpacity>
           </View>
@@ -268,7 +268,7 @@ const styles = StyleSheet.create({
   textPassword: {
     position: "absolute",
     top: "50%",
-    left: "78%",
+    left: "85%",
     color: "#1B4371",
     fontSize: 16,
     lineHeight: 19,

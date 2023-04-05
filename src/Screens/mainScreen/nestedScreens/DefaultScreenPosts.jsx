@@ -1,4 +1,7 @@
 import { useEffect, useState } from "react";
+import { useSelector } from "react-redux";
+import { onSnapshot, collection } from "firebase/firestore";
+import { db } from "../../../firebase/config";
 import {
   View,
   StyleSheet,
@@ -10,16 +13,27 @@ import {
 
 import { Feather } from "@expo/vector-icons";
 
-const DefaultScreenPosts = ({ route, navigation }) => {
+const DefaultScreenPosts = ({ navigation }) => {
   const [posts, setPosts] = useState([]);
 
-  useEffect(() => {
-    if (route.params) {
-      setPosts((prevState) => [...prevState, route.params]);
-    }
-  }, [route.params]);
+  const { email, login } = useSelector((state) => state.auth);
 
-  // console.log(posts);
+  const getAllPost = async () => {
+    try {
+      onSnapshot(collection(db, "posts"), (data) => {
+        const posts = data.docs.map((doc) => ({ ...doc.data(), id: doc.id }));
+        setPosts(posts);
+      });
+    } catch (error) {
+      console.log(error);
+    }
+  };
+
+  useEffect(() => {
+    getAllPost();
+  }, []);
+
+  console.log(posts);
   return (
     <View style={styles.container}>
       <View style={styles.wrapperUser}>
@@ -28,8 +42,8 @@ const DefaultScreenPosts = ({ route, navigation }) => {
           style={styles.userPhoto}
         />
         <View style={{ flexDirection: "column" }}>
-          <Text style={styles.userName}>Natali Romanova</Text>
-          <Text style={styles.userEmail}>email@example.com</Text>
+          <Text style={styles.userName}>{login}</Text>
+          <Text style={styles.userEmail}>{email}</Text>
         </View>
       </View>
       <FlatList
@@ -45,11 +59,18 @@ const DefaultScreenPosts = ({ route, navigation }) => {
           >
             <View style={styles.wrapper}>
               <Image source={{ uri: item.photo }} style={styles.image} />
-              <Text style={styles.title}>{item.title}</Text>
+              <Text style={styles.title}>{item.formValues.title}</Text>
             </View>
 
             <View style={styles.mapComments}>
-              <TouchableOpacity onPress={() => navigation.navigate("Comments")}>
+              <TouchableOpacity
+                onPress={() =>
+                  navigation.navigate("Comments", {
+                    postID: item.id,
+                    photo: item.photo,
+                  })
+                }
+              >
                 <Feather
                   name="message-circle"
                   size={18}
@@ -59,7 +80,12 @@ const DefaultScreenPosts = ({ route, navigation }) => {
               </TouchableOpacity>
 
               <TouchableOpacity
-                onPress={() => navigation.navigate("Map")}
+                onPress={() =>
+                  navigation.navigate("Map", {
+                    location: item.location,
+                    title: item.formValues.title,
+                  })
+                }
                 style={styles.map}
               >
                 <Feather
@@ -68,7 +94,7 @@ const DefaultScreenPosts = ({ route, navigation }) => {
                   color="#BDBDBD"
                   style={styles.mapIcon}
                 />
-                <Text style={styles.textMap}>{item.location}</Text>
+                <Text style={styles.textMap}>{item.formValues.location}</Text>
               </TouchableOpacity>
             </View>
           </View>
