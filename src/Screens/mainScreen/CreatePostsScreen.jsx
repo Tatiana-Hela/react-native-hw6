@@ -14,6 +14,7 @@ import {
 } from "react-native";
 import { Camera } from "expo-camera";
 import * as Location from "expo-location";
+
 import { FontAwesome } from "@expo/vector-icons";
 import { Feather } from "@expo/vector-icons";
 
@@ -39,6 +40,11 @@ const CreatePostsScreen = ({ navigation }) => {
 
   const handleCameraReady = () => {
     setIsCameraReady(true);
+  };
+
+  const cleanPhoto = () => {
+    setPhoto("");
+    setFormValues({ title: "", location: "" });
   };
 
   const takePhoto = async () => {
@@ -100,8 +106,7 @@ const CreatePostsScreen = ({ navigation }) => {
 
   const sendPhoto = () => {
     navigation.navigate("DefaultScreen");
-    setFormValues({ title: "", location: "" });
-    setPhoto("");
+    cleanPhoto();
   };
 
   useEffect(() => {
@@ -231,11 +236,15 @@ const CreatePostsScreen = ({ navigation }) => {
               Publish
             </Text>
           </TouchableOpacity>
+          <TouchableOpacity style={styles.deleteBtn} onPress={cleanPhoto}>
+            <Feather name="trash-2" size={24} color="#BDBDBD" />
+          </TouchableOpacity>
         </KeyboardAvoidingView>
       </View>
     </TouchableWithoutFeedback>
   );
 };
+
 export default CreatePostsScreen;
 
 const styles = StyleSheet.create({
@@ -243,6 +252,7 @@ const styles = StyleSheet.create({
     flex: 1,
     backgroundColor: "#FFFFFF",
     paddingHorizontal: 16,
+    paddingBottom: 34,
   },
   camera: {
     justifyContent: "center",
@@ -289,7 +299,7 @@ const styles = StyleSheet.create({
     borderRadius: 100,
     height: 51,
     marginTop: 32,
-    marginBottom: 120,
+    marginBottom: 86,
     justifyContent: "center",
     alignItems: "center",
   },
@@ -317,5 +327,16 @@ const styles = StyleSheet.create({
     height: 50,
     borderBottomWidth: 1,
     borderBottomColor: "#E8E8E8",
+  },
+  deleteBtn: {
+    marginLeft: "auto",
+    marginRight: "auto",
+    width: 70,
+    height: 40,
+    display: "flex",
+    alignItems: "center",
+    justifyContent: "center",
+    backgroundColor: "#F6F6F6",
+    borderRadius: 20,
   },
 });

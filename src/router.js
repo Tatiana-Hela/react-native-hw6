@@ -1,5 +1,7 @@
+import { TouchableOpacity } from "react-native";
 import { createStackNavigator } from "@react-navigation/stack";
 import { createBottomTabNavigator } from "@react-navigation/bottom-tabs";
+import { BottomTabBar } from "@react-navigation/bottom-tabs";
 import RegistrationScreens from "./Screens/auth/RegistrationScreen";
 import LoginScreen from "./Screens/auth/LoginScreen";
 import PostsScreen from "./Screens/mainScreen/PostsScreen";
@@ -44,6 +46,9 @@ const useRoute = (isAuth) => {
           paddingTop: 9,
         },
       }}
+      tabBar={(props) => (
+        <BottomTabBar {...props} activeTab={props.state.index} />
+      )}
     >
       <MainTab.Screen
         options={{
@@ -58,15 +63,28 @@ const useRoute = (isAuth) => {
         component={PostsScreen}
       />
       <MainTab.Screen
-        options={{
+        options={({ navigation, state }) => ({
+          headerLeft: () => (
+            <TouchableOpacity
+              style={{ marginLeft: 20 }}
+              onPress={() => navigation.goBack()}
+            >
+              <Feather name="arrow-left" size={24} color="black" />
+            </TouchableOpacity>
+          ),
           tabBarIcon: ({ focused, size, color }) => (
             <Feather name="plus" size={size} color={color} />
           ),
           tabBarItemStyle: { borderRadius: "20px", height: 40, width: 70 },
           tabBarActiveBackgroundColor: "#FF6C00",
-          tabBarActiveTintColor: "#FFFFFF",
+          tabBarActiveTintColor: state
+            ? state.index === 0
+              ? "#FFFFFF"
+              : "#FF6C00"
+            : "#FF6C00",
           title: "Create Post",
-        }}
+          tabBarStyle: { display: "none" },
+        })}
         name="Create"
         component={CreatePostsScreen}
       />

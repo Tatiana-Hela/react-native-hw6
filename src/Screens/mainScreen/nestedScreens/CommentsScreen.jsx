@@ -1,13 +1,7 @@
-import {
-  View,
-  Text,
-  StyleSheet,
-  TextInput,
-  TouchableOpacity,
-} from "react-native";
+import { View, StyleSheet, TextInput, TouchableOpacity } from "react-native";
 import { Feather } from "@expo/vector-icons";
 
-const CommentsScreen = ({ navigation }) => {
+const CommentsScreen = () => {
   return (
     <View style={styles.container}>
       <View style={styles.inputContainer}>
@@ -54,9 +48,9 @@ const styles = StyleSheet.create({
   sendBtn: {
     position: "absolute",
     top: 8,
-    left:'85%',
-    justifyContent:"center",
-    alignItems:"center",
+    left: "85%",
+    justifyContent: "center",
+    alignItems: "center",
     backgroundColor: "#FF6C00",
     borderRadius: 50,
     width: 34,

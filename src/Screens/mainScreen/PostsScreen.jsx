@@ -6,7 +6,6 @@ import DefaultScreenPosts from "./nestedScreens/DefaultScreenPosts";
 import CommentsScreen from "./nestedScreens/CommentsScreen";
 import MapScreen from "./nestedScreens/MapScreen";
 import { authSignOutUser } from "../../redux/auth/authOperations";
-
 import { Feather } from "@expo/vector-icons";
 
 const NestedScreen = createStackNavigator();
