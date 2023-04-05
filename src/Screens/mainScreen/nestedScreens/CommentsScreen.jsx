@@ -1,10 +1,20 @@
-import { View, Text, StyleSheet, TextInput } from "react-native";
+import {
+  View,
+  Text,
+  StyleSheet,
+  TextInput,
+  TouchableOpacity,
+} from "react-native";
+import { Feather } from "@expo/vector-icons";
 
 const CommentsScreen = ({ navigation }) => {
   return (
     <View style={styles.container}>
-      <View>
+      <View style={styles.inputContainer}>
         <TextInput style={styles.input} placeholder="Comment..." />
+        <TouchableOpacity style={styles.sendBtn}>
+          <Feather name="arrow-up" size={20} color="#FFFFFF" />
+        </TouchableOpacity>
       </View>
     </View>
   );
@@ -17,11 +27,19 @@ const styles = StyleSheet.create({
     justifyContent: "center",
     alignItems: "center",
     backgroundColor: "#FFFFFF",
+    position: "relative",
+  },
+  inputContainer: {
+    width: "100%",
+    position: "absolute",
+    bottom: 0,
+    left: 0,
+    right: 0,
+    marginBottom: 16,
   },
   input: {
     fontSize: 16,
     lineHeight: 19,
-    width:343,
     marginHorizontal: 16,
     background: "#F6F6F6",
     borderWidth: 1,
@@ -31,6 +49,17 @@ const styles = StyleSheet.create({
     color: "#212121",
     paddingBottom: 16,
     paddingLeft: 16,
-    paddingTop:16,
+    paddingTop: 16,
+  },
+  sendBtn: {
+    position: "absolute",
+    top: 8,
+    left:'85%',
+    justifyContent:"center",
+    alignItems:"center",
+    backgroundColor: "#FF6C00",
+    borderRadius: 50,
+    width: 34,
+    height: 34,
   },
 });
