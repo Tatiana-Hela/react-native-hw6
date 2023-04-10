@@ -73,7 +73,7 @@ const DefaultScreenPosts = ({ navigation }) => {
               >
                 <Feather
                   name="message-circle"
-                  size={18}
+                  size={24}
                   color="#BDBDBD"
                   style={styles.commentsIcon}
                 />
@@ -90,7 +90,7 @@ const DefaultScreenPosts = ({ navigation }) => {
               >
                 <Feather
                   name="map-pin"
-                  size={18}
+                  size={24}
                   color="#BDBDBD"
                   style={styles.mapIcon}
                 />
@@ -125,11 +125,12 @@ const styles = StyleSheet.create({
   },
   mapIcon: {
     position: "absolute",
+    top: "-10%",
   },
   textMap: {
     flex: 1,
     justifyContent: "space-between",
-    marginLeft: 20,
+    marginLeft: 30,
     fontSize: 16,
     lineHeight: 19,
     color: "#212121",
