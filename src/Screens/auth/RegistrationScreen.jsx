@@ -14,6 +14,7 @@ import {
 import { useFonts } from "expo-font";
 import * as SplashScreen from "expo-splash-screen";
 import { useDispatch } from "react-redux";
+import * as ImagePicker from "expo-image-picker";
 
 import { authSignUpUser } from "../../redux/auth/authOperations";
 
@@ -23,6 +24,7 @@ const initialState = {
   login: "",
   email: "",
   password: "",
+  imageUri: null,
 };
 
 const RegistrationScreens = ({ navigation }) => {
@@ -51,6 +53,30 @@ const RegistrationScreens = ({ navigation }) => {
     return null;
   }
 
+  const handleAddImage = async () => {
+    const { status } = await ImagePicker.requestMediaLibraryPermissionsAsync();
+    if (status !== "granted") {
+      alert("Sorry, we need camera roll permissions to make this work!");
+      return;
+    }
+
+    const result = await ImagePicker.launchImageLibraryAsync({
+      mediaTypes: ImagePicker.MediaTypeOptions.All,
+      allowsEditing: true,
+      aspect: [4, 3],
+      quality: 1,
+    });
+
+    if (result.assets.length > 0) {
+      setState((prevState) => ({
+        ...prevState,
+        imageUri: result.assets[0].uri,
+      }));
+    }
+  };
+
+  console.log(state.imageUri);
+
   function handleSubmit() {
     setIsShowKeyboard(false);
     console.log(state);
@@ -67,11 +93,18 @@ const RegistrationScreens = ({ navigation }) => {
         >
           <View style={styles.wrapperForm}>
             <View style={styles.imageWrapper}>
-              <Image />
-              <Image
-                source={require("../../../assets/add.png")}
-                style={styles.addIcon}
-              />
+              {state.imageUri && (
+                <Image
+                  source={{ uri: state.imageUri }}
+                  style={{ width: 120, height: 120, borderRadius: 8 }}
+                />
+              )}
+              <TouchableOpacity onPress={handleAddImage}>
+                <Image
+                  source={require("../../../assets/add.png")}
+                  style={styles.addIcon}
+                />
+              </TouchableOpacity>
             </View>
             <View style={styles.form}>
               <View>

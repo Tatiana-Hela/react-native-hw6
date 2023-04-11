@@ -116,58 +116,62 @@ const ProfileScreen = ({ navigation, route }) => {
                   <View
                     style={{
                       marginBottom: 30,
-                      justifyContent: "center",
-                      alignItems: "center",
                     }}
                   >
                     <Image
                       source={{ uri: item.photo }}
                       style={styles.imagePosts}
                     />
-
                     <Text style={styles.title}>{item.formValues.title}</Text>
-
-                    <View style={styles.mapComments}>
-                      <TouchableOpacity
-                        onPress={() =>
-                          navigation.navigate("Comments", {
-                            postID: item.id,
-                            photo: item.photo,
-                          })
-                        }
-                      >
-                        <Icon
-                          name="message-circle"
-                          size={24}
-                          color="#FF6C00"
-                          style={styles.commentsIcon}
-                        />
-                      </TouchableOpacity>
-                      <Text style={styles.commentsCount}>
-                        {commentsCount[item.id] || 0}
-                      </Text>
-                    </View>
-
-                    <TouchableOpacity
-                      onPress={() =>
-                        navigation.navigate("Map", {
-                          location: item.location,
-                          title: item.formValues.title,
-                        })
-                      }
-                      style={styles.map}
+                    <View
+                      style={{
+                        flexDirection: "row",
+                        justifyContent: "space-between",
+                        alignItems: "center",
+                        marginTop: 11,
+                      }}
                     >
-                      <Feather
-                        name="map-pin"
-                        size={24}
-                        color="#BDBDBD"
-                        style={styles.mapIcon}
-                      />
-                    </TouchableOpacity>
-
-                    <Text style={styles.textMap}>
-                      {item.formValues.location}
-                    </Text>
+                      <View
+                        style={{ flexDirection: "row", alignItems: "center" }}
+                      >
+                        <TouchableOpacity
+                          onPress={() =>
+                            navigation.navigate("Comments", {
+                              postID: item.id,
+                              photo: item.photo,
+                            })
+                          }
+                        >
+                          <Icon
+                            name="message-circle"
+                            size={24}
+                            color={
+                              commentsCount[item.id] > 0 ? "#FF6C00" : "#BDBDBD"
+                            }
+                          />
+                        </TouchableOpacity>
+                        <Text style={styles.commentsCount}>
+                          {commentsCount[item.id] || 0}
+                        </Text>
+                      </View>
+                      <View
+                        style={{ flexDirection: "row", alignItems: "center" }}
+                      >
+                        <TouchableOpacity
+                          onPress={() =>
+                            navigation.navigate("Map", {
+                              location: item.location,
+                              title: item.formValues.title,
+                            })
+                          }
+                        >
+                          <Feather name="map-pin" size={24} color="#BDBDBD" />
+                        </TouchableOpacity>
+                        <Text style={styles.locationText}>
+                          {item.formValues.location}
+                        </Text>
+                      </View>
+                    </View>
                   </View>
                 );
               }}
@@ -222,6 +226,7 @@ const styles = StyleSheet.create({
     lineHeight: 35,
     textAlign: "center",
     marginTop: 60,
+    marginBottom: 33,
     color: "#212121",
   },
   logout: {
@@ -237,36 +242,21 @@ const styles = StyleSheet.create({
     marginTop: 8,
   },
   imagePosts: {
-    width: 353,
+    width: "100%",
     height: 240,
     borderRadius: 8,
-  },
-  map: {
-    position: "relative",
-  },
-  mapIcon: {
-    position: "absolute",
-    top: "-12%",
-    left: "77%",
-  },
-  textMap: {
-    flex: 1,
-    justifyContent: "space-between",
-    fontSize: 16,
-    lineHeight: 19,
-    color: "#212121",
-    textAlign: "right",
-    textDecorationLine: "underline",
-  },
-  mapComments: {
-    marginTop: 10,
-    flexDirection: "row",
-    alignItems: "center",
   },
   commentsCount: {
     fontSize: 16,
     lineHeight: 19,
-    marginRight: "auto",
     color: "#212121",
+    marginLeft: 9,
+  },
+  locationText: {
+    fontSize: 16,
+    lineHeight: 19,
+    color: "#212121",
+    marginLeft: 8,
+    textDecorationLine: "underline",
   },
 });

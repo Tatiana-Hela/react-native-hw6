@@ -53,49 +53,45 @@ const DefaultScreenPosts = ({ navigation }) => {
           <View
             style={{
               marginBottom: 30,
-              justifyContent: "center",
-              alignItems: "center",
             }}
           >
-            <View style={styles.wrapper}>
-              <Image source={{ uri: item.photo }} style={styles.image} />
-              <Text style={styles.title}>{item.formValues.title}</Text>
-            </View>
-
-            <View style={styles.mapComments}>
-              <TouchableOpacity
-                onPress={() =>
-                  navigation.navigate("Comments", {
-                    postID: item.id,
-                    photo: item.photo,
-                  })
-                }
-              >
-                <Feather
-                  name="message-circle"
-                  size={24}
-                  color="#BDBDBD"
-                  style={styles.commentsIcon}
-                />
-              </TouchableOpacity>
-
-              <TouchableOpacity
-                onPress={() =>
-                  navigation.navigate("Map", {
-                    location: item.location,
-                    title: item.formValues.title,
-                  })
-                }
-                style={styles.map}
-              >
-                <Feather
-                  name="map-pin"
-                  size={24}
-                  color="#BDBDBD"
-                  style={styles.mapIcon}
-                />
-                <Text style={styles.textMap}>{item.formValues.location}</Text>
-              </TouchableOpacity>
+            <Image source={{ uri: item.photo }} style={styles.image} />
+            <Text style={styles.title}>{item.formValues.title}</Text>
+            <View
+              style={{
+                flexDirection: "row",
+                justifyContent: "space-between",
+                alignItems: "center",
+                marginTop: 11,
+              }}
+            >
+              <View style={{ flexDirection: "row", alignItems: "center" }}>
+                <TouchableOpacity
+                  onPress={() =>
+                    navigation.navigate("Comments", {
+                      postID: item.id,
+                      photo: item.photo,
+                    })
+                  }
+                >
+                  <Feather name="message-circle" size={24} color="#BDBDBD" />
+                </TouchableOpacity>
+              </View>
+              <View style={{ flexDirection: "row", alignItems: "center" }}>
+                <TouchableOpacity
+                  onPress={() =>
+                    navigation.navigate("Map", {
+                      location: item.location,
+                      title: item.formValues.title,
+                    })
+                  }
+                >
+                  <Feather name="map-pin" size={24} color="#BDBDBD" />
+                </TouchableOpacity>
+                <Text style={styles.locationText}>
+                  {item.formValues.location}
+                </Text>
+              </View>
             </View>
           </View>
         )}
@@ -108,9 +104,8 @@ export default DefaultScreenPosts;
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    justifyContent: "center",
-    alignItems: "center",
     backgroundColor: "#FFFFFF",
+    paddingHorizontal: 16,
   },
   title: {
     fontSize: 16,
@@ -119,40 +114,24 @@ const styles = StyleSheet.create({
     marginRight: "auto",
     marginTop: 8,
   },
-  image: { width: 353, height: 240, borderRadius: 8 },
-  map: {
-    position: "relative",
-  },
-  mapIcon: {
-    position: "absolute",
-    top: "-10%",
-  },
-  textMap: {
-    flex: 1,
-    justifyContent: "space-between",
-    marginLeft: 30,
+
+  locationText: {
     fontSize: 16,
     lineHeight: 19,
     color: "#212121",
-    textAlign: "right",
+    marginLeft: 8,
     textDecorationLine: "underline",
   },
-  mapComments: {
-    marginTop: 10,
-    flexDirection: "row",
-    justifyContent: "space-between",
-    alignItems: "center",
-    width: 353,
+  image: {
+    width: "100%",
+    height: 240,
+    borderRadius: 8,
   },
 
-  wrapper: {
-    width: 353,
-  },
   wrapperUser: {
     flexDirection: "row",
     alignItems: "center",
     marginVertical: 32,
-    width: 353,
   },
   userPhoto: {
     marginRight: 8,

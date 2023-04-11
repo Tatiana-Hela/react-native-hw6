@@ -1,3 +1,4 @@
+import axios from "axios";
 import { useState, useEffect } from "react";
 import { useSelector } from "react-redux";
 import {
@@ -15,17 +16,16 @@ import {
 import { Camera } from "expo-camera";
 import * as Location from "expo-location";
 
-import { FontAwesome } from "@expo/vector-icons";
-import { Feather } from "@expo/vector-icons";
+import { Feather, FontAwesome } from "@expo/vector-icons";
 
 import { storage } from "../../firebase/config";
-import { getFirestore } from "firebase/firestore";
-import { collection, addDoc } from "firebase/firestore";
+import { getFirestore, collection, addDoc } from "firebase/firestore";
 import { uploadBytes, ref, getDownloadURL } from "firebase/storage";
 
 const CreatePostsScreen = ({ navigation }) => {
   const [camera, setCamera] = useState(null);
   const [photo, setPhoto] = useState("");
+  const [locationAddress, setLocationAddress] = useState("");
   const [location, setLocation] = useState(null);
   const [isCameraReady, setIsCameraReady] = useState(false);
   const [type, setType] = useState(Camera.Constants.Type.back);
@@ -37,6 +37,60 @@ const CreatePostsScreen = ({ navigation }) => {
   });
 
   const { userId, login } = useSelector((state) => state.auth);
+
+  useEffect(() => {
+    const requestCameraPermission = async () => {
+      const { status } = await Camera.requestCameraPermissionsAsync();
+      if (status !== "granted") {
+        console.log("Camera permission denied");
+      } else {
+        console.log("Camera permission granted");
+      }
+    };
+
+    const requestLocationPermission = async () => {
+      let { status } = await Location.requestForegroundPermissionsAsync();
+      if (status !== "granted") {
+        console.log("Location permission denied");
+      } else {
+        console.log("Location permission granted");
+      }
+    };
+
+    if (Platform.OS === "android" && !Constants.isDevice) {
+      console.log("Location permission denied because emulator has no GPS");
+    } else {
+      requestLocationPermission();
+    }
+
+    requestCameraPermission();
+  }, []);
+
+  const getLocationAddress = async (latitude, longitude) => {
+    try {
+      const [address] = await Location.reverseGeocodeAsync({
+        latitude,
+        longitude,
+        language: "en",
+      });
+      console.log(address);
+      if (address) {
+        const locationAddress = `${address.city}, ${address.country}`;
+        const translationResponse = await axios.get(
+          `https://translate.google.com/translate_a/single?client=gtx&sl=ru&tl=en&dt=t&q=${encodeURIComponent(
+            locationAddress
+          )}`
+        );
+        const translatedAddress = translationResponse.data[0][0][0];
+        setLocationAddress(translatedAddress);
+        setFormValues({ location: translatedAddress });
+      } else {
+        console.log("No address found");
+      }
+    } catch (error) {
+      console.log(error.message);
+    }
+  };
 
   const handleCameraReady = () => {
     setIsCameraReady(true);
@@ -55,6 +109,7 @@ const CreatePostsScreen = ({ navigation }) => {
         const location = await Location.getCurrentPositionAsync({});
         setLocation(location);
         setPhoto(photo.uri);
+        getLocationAddress(location.coords.latitude, location.coords.longitude);
       } catch (error) {
         console.error("Failed to take photo", error);
       }
@@ -108,34 +163,6 @@ const CreatePostsScreen = ({ navigation }) => {
     navigation.navigate("DefaultScreen");
     cleanPhoto();
   };
-
-  useEffect(() => {
-    const requestCameraPermission = async () => {
-      const { status } = await Camera.requestCameraPermissionsAsync();
-      if (status !== "granted") {
-        console.log("Camera permission denied");
-      } else {
-        console.log("Camera permission granted");
-      }
-    };
-
-    const requestLocationPermission = async () => {
-      let { status } = await Location.requestForegroundPermissionsAsync();
-      if (status !== "granted") {
-        console.log("Location permission denied");
-      } else {
-        console.log("Location permission granted");
-      }
-    };
-
-    if (Platform.OS === "android" && !Constants.isDevice) {
-      console.log("Location permission denied because emulator has no GPS");
-    } else {
-      requestLocationPermission();
-    }
-
-    requestCameraPermission();
-  }, []);
 
   return (
     <TouchableWithoutFeedback onPress={Keyboard.dismiss}>
@@ -206,7 +233,7 @@ const CreatePostsScreen = ({ navigation }) => {
               <TextInput
                 onFocus={() => setIsFocus({ ...isFocus, location: true })}
                 onBlur={() => setIsFocus({ ...isFocus, location: false })}
-                placeholder="Locality..."
+                placeholder="Location..."
                 value={formValues.location}
                 onChangeText={(value) =>
                   setFormValues({ ...formValues, location: value })
