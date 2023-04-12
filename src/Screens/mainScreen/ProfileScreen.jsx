@@ -13,16 +13,47 @@ import { useDispatch } from "react-redux";
 import { collection, query, where, onSnapshot } from "firebase/firestore";
 import { db } from "../../firebase/config";
 import { authSignOutUser } from "../../redux/auth/authOperations";
+import * as ImagePicker from "expo-image-picker";
 
 import Icon from "react-native-vector-icons/Feather";
 import { Feather } from "@expo/vector-icons";
 
 const ProfileScreen = ({ navigation, route }) => {
   const dispatch = useDispatch();
+   const [imageUri,setImageUri] = useState(null)
   const [userPosts, setUserPosts] = useState(null);
   const [commentsCount, setCommentsCount] = useState({});
 
-  const { login, userId, imageUri } = useSelector((state) => state.auth);
+  const { login, userId } = useSelector((state) => state.auth);
+
+
+  const handleAddImage = async () => {
+    const { status } = await ImagePicker.requestMediaLibraryPermissionsAsync();
+    if (status !== "granted") {
+      alert("Sorry, we need camera roll permissions to make this work!");
+      return;
+    }
+
+    const result = await ImagePicker.launchImageLibraryAsync({
+      mediaTypes: ImagePicker.MediaTypeOptions.All,
+      allowsEditing: true,
+      aspect: [4, 3],
+      quality: 1,
+    });
+
+    if (result.assets.length > 0) {
+      setImageUri( result.assets[0].uri)
+       
+      };
+    }
+  
+
+  const clearPhoto = () => {
+    setImageUri( null );
+  };
+
+
+
 
   useEffect(() => {
     if (route.params?.commentsCount) {
@@ -95,16 +126,28 @@ const ProfileScreen = ({ navigation, route }) => {
           />
         </TouchableOpacity>
 
-        <View style={styles.imageWrapper}>
-          <Image
-            source={{ uri: imageUri }}
-            style={{ width: 120, height: 120, borderRadius: 16 }}
-          />
-          <Image
-            source={require("../../../assets/delete-icon.png")}
-            style={styles.deleteIcon}
-          />
-        </View>
+         {imageUri ? (
+              <View style={styles.imageWrapper}>
+                <Image
+                  source={{ uri: imageUri }}
+                  style={styles.imageUser}
+                />
+                <TouchableOpacity onPress={clearPhoto} style={styles.deleteIcon}>
+                  <Image
+                    source={require("../../../assets/delete-icon.png")}
+                  />
+                </TouchableOpacity>
+              </View>
+            ) : (
+              <View style={styles.imageWrapper}>
+                <TouchableOpacity
+                  onPress={handleAddImage}
+                  style={styles.addIcon}
+                >
+                  <Image source={require("../../../assets/add.png")} />
+                </TouchableOpacity>
+              </View>
+            )}
         <View>
           <Text style={styles.name}>{login}</Text>
         </View>
@@ -208,27 +251,39 @@ const styles = StyleSheet.create({
     borderTopLeftRadius: 25,
     borderTopRightRadius: 25,
   },
-  imageWrapper: {
-    position: "absolute",
-    left: "38%",
-    top: "-10%",
-    width: 120,
-    height: 120,
-    backgroundColor: "#F6F6F6",
+  imageUser: {
+    width:"100%",
+    height: "100%",
     borderRadius: 16,
   },
   deleteIcon: {
     position: "absolute",
     left: "86%",
     top: "60%",
-    width: 35,
-    height: 35,
+    width: 25,
+    height:25,
+  },
+  imageWrapper: {
+    position: "absolute",
+    left: "38%",
+    top: "-15%",
+    width: 120,
+    height: 120,
+    backgroundColor: "#F6F6F6",
+    borderRadius: 16,
+  },
+  addIcon: {
+    position: "absolute",
+    left: "90%",
+    top: "65%",
+    width: 25,
+    height:25,
   },
   name: {
     fontSize: 30,
     lineHeight: 35,
     textAlign: "center",
-    marginTop: 60,
+    marginTop: 32,
     marginBottom: 33,
     color: "#212121",
   },
