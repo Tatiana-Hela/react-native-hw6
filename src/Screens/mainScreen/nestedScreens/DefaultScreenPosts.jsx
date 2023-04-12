@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
 import { useSelector } from "react-redux";
-import { onSnapshot, collection } from "firebase/firestore";
+import { onSnapshot, collection, query } from "firebase/firestore";
 import { db } from "../../../firebase/config";
 import {
   View,
@@ -13,8 +13,9 @@ import {
 
 import { Feather } from "@expo/vector-icons";
 
-const DefaultScreenPosts = ({ navigation }) => {
+const DefaultScreenPosts = ({ navigation, route }) => {
   const [posts, setPosts] = useState([]);
+  const [commentsCount, setCommentsCount] = useState({});
 
   const { email, login, imageUri } = useSelector((state) => state.auth);
 
@@ -31,8 +32,34 @@ const DefaultScreenPosts = ({ navigation }) => {
 
   useEffect(() => {
     getAllPost();
+    posts.forEach((post) => {
+      getCommentsCount(post.id);
+    });
   }, []);
 
+  useEffect(() => {
+    if (route.params?.commentsCount) {
+      setCommentsCount((prev) => ({
+        ...prev,
+        [route.params.postID]: route.params.commentsCount,
+      }));
+    }
+  }, [route.params]);
+
+  const getCommentsCount = async (postID) => {
+    try {
+      const commentsRef = collection(db, `posts/${postID}/comments`);
+      const queryRef = query(commentsRef);
+      const unsubscribe = onSnapshot(queryRef, (querySnapshot) => {
+        const commentsCount = querySnapshot.docs.length;
+        setCommentsCount((prev) => ({ ...prev, [postID]: commentsCount }));
+      });
+      return () => unsubscribe();
+    } catch (error) {
+      console.log(error);
+      setCommentsCount((prev) => ({ ...prev, [postID]: 0 }));
+    }
+  };
   console.log(posts);
   return (
     <View style={styles.container}>
@@ -71,8 +98,15 @@ const DefaultScreenPosts = ({ navigation }) => {
                     })
                   }
                 >
-                  <Feather name="message-circle" size={24} color="#BDBDBD" />
+                  <Feather
+                    name="message-circle"
+                    size={24}
+                    color={commentsCount[item.id] > 0 ? "#FF6C00" : "#BDBDBD"}
+                  />
                 </TouchableOpacity>
+                <Text style={styles.commentsCount}>
+                  {commentsCount[item.id] || 0}
+                </Text>
               </View>
               <View style={{ flexDirection: "row", alignItems: "center" }}>
                 <TouchableOpacity
@@ -118,6 +152,12 @@ const styles = StyleSheet.create({
     color: "#212121",
     marginLeft: 8,
     textDecorationLine: "underline",
+  },
+  commentsCount: {
+    fontSize: 16,
+    lineHeight: 19,
+    color: "#212121",
+    marginLeft: 9,
   },
   image: {
     width: "100%",

@@ -12,6 +12,7 @@ import {
   Image,
   FlatList,
   SafeAreaView,
+  ScrollView,
 } from "react-native";
 import { Feather } from "@expo/vector-icons";
 import { useState, useEffect } from "react";
@@ -28,8 +29,7 @@ const CommentsScreen = ({ route, navigation }) => {
   const [commentsCount, setCommentsCount] = useState(0);
 
   const { postID, photo } = route.params;
-  const { login } = useSelector((state) => state.auth);
-  console.log(photo);
+  const { login, userId } = useSelector((state) => state.auth);
 
   const keyboardHide = () => {
     Keyboard.dismiss();
@@ -60,9 +60,11 @@ const CommentsScreen = ({ route, navigation }) => {
   }, []);
 
   useEffect(() => {
-    // console.log("commentsCount in comments", commentsCount);
     navigation.setParams({ commentsCount: commentsCount });
   }, [commentsCount]);
+
+
+
 
   return (
     <TouchableWithoutFeedback onPress={keyboardHide}>
@@ -76,16 +78,14 @@ const CommentsScreen = ({ route, navigation }) => {
           </View>
         )}
         <SafeAreaView style={styles.SafeAreaView}>
-          <FlatList
-            data={commentsArr}
-            keyExtractor={(item) => item.id}
-            renderItem={({ item }) => (
-              <View style={styles.commentWrapper}>
+           <ScrollView>
+            {commentsArr.map((item) => (
+              <View style={styles.commentWrapper} key={item.id}>
                 <Text style={styles.comments}>{item.comment}</Text>
                 <Text style={styles.commentDate}>{item.date}</Text>
               </View>
-            )}
-          />
+            ))}
+          </ScrollView>
         </SafeAreaView>
         <View style={styles.inputContainer}>
           <TextInput
@@ -110,6 +110,7 @@ const styles = StyleSheet.create({
   container: {
     flex: 1,
     backgroundColor: "#FFFFFF",
+    paddingHorizontal: 16,
   },
   inputContainer: {
     width: "100%",
@@ -117,17 +118,19 @@ const styles = StyleSheet.create({
     bottom: 0,
     left: 0,
     right: 0,
+    marginTop:20,
     marginBottom: 16,
   },
   input: {
+    width:"100%",
     fontSize: 16,
     lineHeight: 19,
-    marginHorizontal: 16,
     backgroundColor: "#F6F6F6",
     borderWidth: 1,
     borderColor: "#E8E8E8",
     borderRadius: 100,
     height: 50,
+    marginLeft:16,
     color: "#212121",
     paddingBottom: 16,
     paddingLeft: 16,
@@ -136,7 +139,7 @@ const styles = StyleSheet.create({
   sendBtn: {
     position: "absolute",
     top: 8,
-    left: "85%",
+    left: "92%",
     justifyContent: "center",
     alignItems: "center",
     backgroundColor: "#FF6C00",
@@ -147,14 +150,13 @@ const styles = StyleSheet.create({
   photoWrapper: {
     marginTop: 32,
     marginBottom: 20,
-    marginHorizontal: 16,
     borderRadius: 8,
     height: 240,
   },
   commentWrapper: {
     marginBottom: 12,
     marginTop: 12,
-    marginHorizontal: 16,
+    marginLeft:"auto",
     padding: 16,
     backgroundColor: "rgba(0, 0, 0, 0.03)",
     borderRadius: 6,

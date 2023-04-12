@@ -20,12 +20,11 @@ import { Feather } from "@expo/vector-icons";
 
 const ProfileScreen = ({ navigation, route }) => {
   const dispatch = useDispatch();
-   const [imageUri,setImageUri] = useState(null)
+  const [imageUri, setImageUri] = useState(null);
   const [userPosts, setUserPosts] = useState(null);
-  const [commentsCount, setCommentsCount] = useState({});
+  const [commentsCount, setCommentsCount] = useState(0);
 
   const { login, userId } = useSelector((state) => state.auth);
-
 
   const handleAddImage = async () => {
     const { status } = await ImagePicker.requestMediaLibraryPermissionsAsync();
@@ -33,7 +32,6 @@ const ProfileScreen = ({ navigation, route }) => {
       alert("Sorry, we need camera roll permissions to make this work!");
       return;
     }
-
     const result = await ImagePicker.launchImageLibraryAsync({
       mediaTypes: ImagePicker.MediaTypeOptions.All,
       allowsEditing: true,
@@ -42,18 +40,13 @@ const ProfileScreen = ({ navigation, route }) => {
     });
 
     if (result.assets.length > 0) {
-      setImageUri( result.assets[0].uri)
-       
-      };
+      setImageUri(result.assets[0].uri);
     }
-  
-
-  const clearPhoto = () => {
-    setImageUri( null );
   };
 
-
-
+  const clearPhoto = () => {
+    setImageUri(null);
+  };
 
   useEffect(() => {
     if (route.params?.commentsCount) {
@@ -80,6 +73,8 @@ const ProfileScreen = ({ navigation, route }) => {
     }
   };
 
+
+
   const getUserPosts = async () => {
     try {
       const userPostsRef = collection(db, "posts");
@@ -102,6 +97,9 @@ const ProfileScreen = ({ navigation, route }) => {
       console.log(error);
     }
   };
+
+
+  console.log(commentsCount)
 
   const signOut = () => {
     dispatch(authSignOutUser());
@@ -126,28 +124,20 @@ const ProfileScreen = ({ navigation, route }) => {
           />
         </TouchableOpacity>
 
-         {imageUri ? (
-              <View style={styles.imageWrapper}>
-                <Image
-                  source={{ uri: imageUri }}
-                  style={styles.imageUser}
-                />
-                <TouchableOpacity onPress={clearPhoto} style={styles.deleteIcon}>
-                  <Image
-                    source={require("../../../assets/delete-icon.png")}
-                  />
-                </TouchableOpacity>
-              </View>
-            ) : (
-              <View style={styles.imageWrapper}>
-                <TouchableOpacity
-                  onPress={handleAddImage}
-                  style={styles.addIcon}
-                >
-                  <Image source={require("../../../assets/add.png")} />
-                </TouchableOpacity>
-              </View>
-            )}
+        {imageUri ? (
+          <View style={styles.imageWrapper}>
+            <Image source={{ uri: imageUri }} style={styles.imageUser} />
+            <TouchableOpacity onPress={clearPhoto} style={styles.deleteIcon}>
+              <Image source={require("../../../assets/delete-icon.png")} />
+            </TouchableOpacity>
+          </View>
+        ) : (
+          <View style={styles.imageWrapper}>
+            <TouchableOpacity onPress={handleAddImage} style={styles.addIcon}>
+              <Image source={require("../../../assets/add.png")} />
+            </TouchableOpacity>
+          </View>
+        )}
         <View>
           <Text style={styles.name}>{login}</Text>
         </View>
@@ -252,7 +242,7 @@ const styles = StyleSheet.create({
     borderTopRightRadius: 25,
   },
   imageUser: {
-    width:"100%",
+    width: "100%",
     height: "100%",
     borderRadius: 16,
   },
@@ -261,7 +251,7 @@ const styles = StyleSheet.create({
     left: "86%",
     top: "60%",
     width: 25,
-    height:25,
+    height: 25,
   },
   imageWrapper: {
     position: "absolute",
@@ -277,7 +267,7 @@ const styles = StyleSheet.create({
     left: "90%",
     top: "65%",
     width: 25,
-    height:25,
+    height: 25,
   },
   name: {
     fontSize: 30,
