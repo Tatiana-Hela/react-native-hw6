@@ -24,6 +24,10 @@ const DefaultScreenPosts = ({ navigation, route }) => {
       onSnapshot(collection(db, "posts"), (data) => {
         const posts = data.docs.map((doc) => ({ ...doc.data(), id: doc.id }));
         setPosts(posts);
+        // Call getCommentsCount for each post
+        posts.forEach((post) => {
+          getCommentsCount(post.id);
+        });
       });
     } catch (error) {
       console.log(error);
@@ -32,9 +36,6 @@ const DefaultScreenPosts = ({ navigation, route }) => {
 
   useEffect(() => {
     getAllPost();
-    posts.forEach((post) => {
-      getCommentsCount(post.id);
-    });
   }, []);
 
   useEffect(() => {
