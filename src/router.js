@@ -15,7 +15,7 @@ const AuthStack = createStackNavigator();
 const MainTab = createBottomTabNavigator();
 
 const useRoute = (isAuth) => {
-  // console.log(isAuth);
+  console.log(isAuth);
 
   if (!isAuth) {
     return (

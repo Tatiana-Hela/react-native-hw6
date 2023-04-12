@@ -16,7 +16,7 @@ import { Feather } from "@expo/vector-icons";
 const DefaultScreenPosts = ({ navigation }) => {
   const [posts, setPosts] = useState([]);
 
-  const { email, login } = useSelector((state) => state.auth);
+  const { email, login, imageUri } = useSelector((state) => state.auth);
 
   const getAllPost = async () => {
     try {
@@ -37,10 +37,7 @@ const DefaultScreenPosts = ({ navigation }) => {
   return (
     <View style={styles.container}>
       <View style={styles.wrapperUser}>
-        <Image
-          source={require("../../../../assets/images/rectanglex.jpg")}
-          style={styles.userPhoto}
-        />
+        <Image source={{ uri: imageUri }} style={styles.userPhoto} />
         <View style={{ flexDirection: "column" }}>
           <Text style={styles.userName}>{login}</Text>
           <Text style={styles.userEmail}>{email}</Text>

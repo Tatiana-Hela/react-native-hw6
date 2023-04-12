@@ -22,7 +22,7 @@ const ProfileScreen = ({ navigation, route }) => {
   const [userPosts, setUserPosts] = useState(null);
   const [commentsCount, setCommentsCount] = useState({});
 
-  const { login, userId } = useSelector((state) => state.auth);
+  const { login, userId, imageUri } = useSelector((state) => state.auth);
 
   useEffect(() => {
     if (route.params?.commentsCount) {
@@ -96,7 +96,10 @@ const ProfileScreen = ({ navigation, route }) => {
         </TouchableOpacity>
 
         <View style={styles.imageWrapper}>
-          <Image />
+          <Image
+            source={{ uri: imageUri }}
+            style={{ width: 120, height: 120, borderRadius: 16 }}
+          />
           <Image
             source={require("../../../assets/delete-icon.png")}
             style={styles.deleteIcon}
