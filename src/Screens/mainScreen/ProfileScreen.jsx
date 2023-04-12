@@ -24,7 +24,7 @@ const ProfileScreen = ({ navigation, route }) => {
   const [userPosts, setUserPosts] = useState(null);
   const [commentsCount, setCommentsCount] = useState(0);
 
-  const { login, userId } = useSelector((state) => state.auth);
+  const { login, userId, photo } = useSelector((state) => state.auth);
 
   const handleAddImage = async () => {
     const { status } = await ImagePicker.requestMediaLibraryPermissionsAsync();
@@ -73,8 +73,6 @@ const ProfileScreen = ({ navigation, route }) => {
     }
   };
 
-
-
   const getUserPosts = async () => {
     try {
       const userPostsRef = collection(db, "posts");
@@ -98,8 +96,7 @@ const ProfileScreen = ({ navigation, route }) => {
     }
   };
 
-
-  console.log(commentsCount)
+  console.log(commentsCount);
 
   const signOut = () => {
     dispatch(authSignOutUser());
@@ -126,7 +123,7 @@ const ProfileScreen = ({ navigation, route }) => {
 
         {imageUri ? (
           <View style={styles.imageWrapper}>
-            <Image source={{ uri: imageUri }} style={styles.imageUser} />
+            <Image source={{ uri: photo }} style={styles.imageUser} />
             <TouchableOpacity onPress={clearPhoto} style={styles.deleteIcon}>
               <Image source={require("../../../assets/delete-icon.png")} />
             </TouchableOpacity>

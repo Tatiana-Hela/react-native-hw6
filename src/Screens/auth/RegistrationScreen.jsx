@@ -18,6 +18,9 @@ import * as ImagePicker from "expo-image-picker";
 
 import { authSignUpUser } from "../../redux/auth/authOperations";
 
+import { storage } from "../../firebase/config";
+import { uploadBytes, ref, getDownloadURL } from "firebase/storage";
+
 SplashScreen.preventAutoHideAsync();
 
 const initialState = {
@@ -28,6 +31,7 @@ const initialState = {
 };
 
 const RegistrationScreens = ({ navigation }) => {
+  const [photo, setPhoto] = useState(null);
   const [isShowKeyboard, setIsShowKeyboard] = useState(false);
   const [state, setState] = useState(initialState);
   const [isFocus, setIsFocus] = useState({
@@ -68,25 +72,49 @@ const RegistrationScreens = ({ navigation }) => {
     });
 
     if (result.assets.length > 0) {
-      setState((prevState) => ({
-        ...prevState,
-        imageUri: result.assets[0].uri,
-      }));
+      setPhoto(result.assets[0]);
     }
   };
 
-  
+  const uploadPhotoToServer = async () => {
+    try {
+      const response = await fetch(photo.uri);
+      const file = await response.blob();
+      const uniquePostId = Date.now().toString();
+      const storageRef = ref(storage, `profilePictures/${uniquePostId}`);
+      await uploadBytes(storageRef, file);
+      const processedPhoto = await getDownloadURL(storageRef);
+      console.log("processedPhoto", processedPhoto);
+      return processedPhoto;
+    } catch (error) {
+      console.log(error.message);
+    }
+  };
   const clearPhoto = () => {
-    setImageUri( null );
+    setPhoto(null);
   };
 
-  console.log(state.imageUri);
+  async function handleSubmit() {
+    try {
+      const processedPhoto = photo ? await uploadPhotoToServer() : null;
 
-  function handleSubmit() {
-    setIsShowKeyboard(false);
-    console.log(state);
-    dispatch(authSignUpUser(state));
-    setState(initialState);
+      const user = {
+        login: state.login,
+        email: state.email,
+        password: state.password,
+        photo: processedPhoto,
+      };
+
+      dispatch(authSignUpUser(user));
+      setState({
+        login: "",
+        email: "",
+        password: "",
+      });
+      setPhoto(null);
+    } catch (error) {
+      console.log(error.message);
+    }
   }
 
   return (
@@ -97,12 +125,9 @@ const RegistrationScreens = ({ navigation }) => {
           source={require("../../../assets/images/photo-bg2x.jpg")}
         >
           <View style={styles.wrapperForm}>
-            {state.imageUri ? (
+            {photo ? (
               <View style={styles.imageWrapper}>
-                <Image
-                  source={{ uri: state.imageUri }}
-                  style={styles.imageUser}
-                />
+                <Image source={{ uri: photo.uri }} style={styles.imageUser} />
                 <TouchableOpacity
                   onPress={clearPhoto}
                   style={styles.deleteIcon}

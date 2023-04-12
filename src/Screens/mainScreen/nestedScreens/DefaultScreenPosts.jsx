@@ -17,14 +17,13 @@ const DefaultScreenPosts = ({ navigation, route }) => {
   const [posts, setPosts] = useState([]);
   const [commentsCount, setCommentsCount] = useState({});
 
-  const { email, login, imageUri } = useSelector((state) => state.auth);
+  const { email, login, photo } = useSelector((state) => state.auth);
 
   const getAllPost = async () => {
     try {
       onSnapshot(collection(db, "posts"), (data) => {
         const posts = data.docs.map((doc) => ({ ...doc.data(), id: doc.id }));
         setPosts(posts);
-        // Call getCommentsCount for each post
         posts.forEach((post) => {
           getCommentsCount(post.id);
         });
@@ -65,7 +64,7 @@ const DefaultScreenPosts = ({ navigation, route }) => {
   return (
     <View style={styles.container}>
       <View style={styles.wrapperUser}>
-        <Image source={{ uri: imageUri }} style={styles.userPhoto} />
+        <Image source={{ uri: photo }} style={styles.userPhoto} />
         <View style={{ flexDirection: "column" }}>
           <Text style={styles.userName}>{login}</Text>
           <Text style={styles.userEmail}>{email}</Text>
