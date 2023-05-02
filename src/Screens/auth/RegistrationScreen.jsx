@@ -80,8 +80,8 @@ const RegistrationScreens = ({ navigation }) => {
     try {
       const response = await fetch(photo.uri);
       const file = await response.blob();
-      const uniquePostId = Date.now().toString();
-      const storageRef = ref(storage, `profilePictures/${uniquePostId}`);
+      const avatarId = Date.now().toString();
+      const storageRef = ref(storage, `profilePictures/${avatarId}`);
       await uploadBytes(storageRef, file);
       const processedPhoto = await getDownloadURL(storageRef);
       console.log("processedPhoto", processedPhoto);

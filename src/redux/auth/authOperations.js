@@ -30,6 +30,7 @@ export const authSignUpUser =
         email: email,
         photo: photoURL,
       };
+
       dispatch(updateUserProfile(userUpdateProfile));
     } catch (error) {
       console.log(error.message);
