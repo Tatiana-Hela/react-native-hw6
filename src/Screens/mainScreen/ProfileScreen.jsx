@@ -1,7 +1,5 @@
 import { useSelector } from "react-redux";
 import { useState, useEffect } from "react";
-import CryptoJS from "crypto-js";
-import sha256 from "crypto-js/sha256";
 import {
   View,
   Text,
@@ -14,55 +12,84 @@ import {
 import { useDispatch } from "react-redux";
 import {
   collection,
-  query,
-  where,
-  onSnapshot,
-  addDoc,
   getDocs,
+  query,
+  orderBy,
   doc,
-  updateDoc,
+  where,
 } from "firebase/firestore";
 
 import { db, storage } from "../../firebase/config";
-import { ref, uploadBytes, getDownloadURL } from "@firebase/storage";
-import { authSignOutUser } from "../../redux/auth/authOperations";
+import { ref, uploadBytesResumable, getDownloadURL } from "@firebase/storage";
+import {
+  authSignOutUser,
+  authEditProfile,
+} from "../../redux/auth/authOperations";
 import * as ImagePicker from "expo-image-picker";
-import { authSlice } from "../../redux/auth/authReducer";
 
 import Icon from "react-native-vector-icons/Feather";
 import { Feather } from "@expo/vector-icons";
 
 const ProfileScreen = ({ navigation, route }) => {
   const dispatch = useDispatch();
+  const [selectedImg, setSelectedImg] = useState(null);
+  const [currentAvatar, setCurrentAvatar] = useState(null);
   const [loading, setLoading] = useState(false);
-  const [imageUri, setImageUri] = useState(null);
   const [userPosts, setUserPosts] = useState(null);
   const [commentsCount, setCommentsCount] = useState(0);
 
-  const { updateUserProfile } = authSlice.actions;
+  useEffect(() => {
+    if (!selectedImg) {
+      setSelectedImg(photo);
+    }
+  }, []);
 
-  const { login, userId, photo, email } = useSelector((state) => state.auth);
+  useEffect(() => {
+    if (currentAvatar !== null && currentAvatar !== photo) {
+      uploadPhotoToServer();
+    }
+  }, [currentAvatar]);
 
-  // const handleAddImage = async () => {
-  //   const { status } = await ImagePicker.requestMediaLibraryPermissionsAsync();
-  //   if (status !== "granted") {
-  //     alert("Sorry, we need camera roll permissions to make this work!");
-  //     return;
-  //   }
-  //   const result = await ImagePicker.launchImageLibraryAsync({
-  //     mediaTypes: ImagePicker.MediaTypeOptions.All,
-  //     allowsEditing: true,
-  //     aspect: [4, 3],
-  //     quality: 1,
-  //   });
+  const { login, userId, photo } = useSelector((state) => state.auth);
 
-  //   if (result.assets.length > 0) {
-  //     setImageUri(result.assets[0].uri);
-  //   }
-  // };
+  const downloadPhoto = async () => {
+    try {
+      let result = await ImagePicker.launchImageLibraryAsync({
+        mediaTypes: ImagePicker.MediaTypeOptions.Images,
+        allowsEditing: true,
+        aspect: [4, 3],
+        quality: 1,
+      });
+
+      if (!result.canceled) {
+        setSelectedImg(result.assets[0].uri);
+        setCurrentAvatar(result.assets[0].uri);
+      }
+    } catch (E) {
+      console.log(E);
+    }
+  };
+
+  const uploadPhotoToServer = async () => {
+    try {
+      setLoading(true);
+      const response = await fetch(selectedImg);
+      const file = await response.blob();
+      const uniquePhotoId = Date.now().toString();
+
+      const storageRef = ref(storage, `avatar/${uniquePhotoId}`);
+      const result = await uploadBytesResumable(storageRef, file);
+      const processedPhoto = await getDownloadURL(storageRef);
+      await dispatch(authEditProfile({ photo: processedPhoto }));
+      setLoading(false);
+      return processedPhoto;
+    } catch (error) {
+      console.log("error:", error);
+    }
+  };
 
   const clearPhoto = () => {
-    dispatch(updateUserProfile({ photo: null, login, userId, email }));
+    setSelectedImg(null);
   };
 
   useEffect(() => {
@@ -113,136 +140,6 @@ const ProfileScreen = ({ navigation, route }) => {
     }
   };
 
-  const hashImageContents = async (imageBlob) => {
-    const fileReader = new FileReader();
-    return new Promise((resolve, reject) => {
-      fileReader.onerror = () => {
-        fileReader.abort();
-        reject(new Error("Failed to hash image contents."));
-      };
-      fileReader.onload = () => {
-        const hash = sha256(CryptoJS.lib.WordArray.create(fileReader.result));
-        resolve(hash.toString());
-      };
-      fileReader.readAsDataURL(imageBlob);
-    });
-  };
-
-  const uploadAvatar = async () => {
-    if (photo) {
-      try {
-        setLoading(true);
-
-        // Compute the hash of the image contents
-        const response = await fetch(photo);
-        const file = await response.blob();
-        const imageHash = await hashImageContents(file);
-
-        // Check if there's already an image with the same hash in the database
-        const userAvatarRef = collection(db, "profilePictures");
-        const q = query(userAvatarRef, where("imageHash", "==", imageHash));
-        const querySnapshot = await getDocs(q);
-        if (!querySnapshot.empty) {
-          const docId = querySnapshot.docs[0].id;
-          console.log("docID", docId);
-          // An image with the same hash already exists, use its URL instead of uploading
-          const downloadURL = querySnapshot.docs[0].data().photo;
-          dispatch(
-            updateUserProfile({ photo: downloadURL, userId, login, email })
-          );
-          setLoading(false);
-          return;
-        }
-
-        // The image is new, upload it to the storage and add it to the database
-        const avatarID = Date.now().toString();
-        const storageRef = ref(storage, `profilePictures/${avatarID}`);
-        await uploadBytes(storageRef, file);
-        const downloadURL = await getDownloadURL(storageRef);
-        const fullStoragePath = storageRef.fullPath;
-
-        const uniqueId = Date.now().toString();
-        await addDoc(userAvatarRef, {
-          id: uniqueId,
-          photo: downloadURL,
-          imageHash,
-          fullStoragePath,
-          userId,
-        });
-        // setAvatar(downloadURL);
-        dispatch(
-          updateUserProfile({ photo: downloadURL, userId, login, email })
-        );
-        setLoading(false);
-      } catch (err) {
-        console.log(err);
-        setLoading(false);
-      }
-    }
-  };
-
-  useEffect(() => {
-    uploadAvatar();
-  }, []);
-
-  // Function to handle avatar update in the profile screen
-  const updateAvatar = async () => {
-    try {
-      setLoading(true);
-
-      // Request permission to access the camera roll
-      const permissionResult =
-        await ImagePicker.requestMediaLibraryPermissionsAsync();
-      if (permissionResult.granted === false) {
-        alert("Permission to access the camera roll is required!");
-        setLoading(false);
-        return;
-      }
-
-      // Launch the image picker
-      const result = await ImagePicker.launchImageLibraryAsync({
-        mediaTypes: ImagePicker.MediaTypeOptions.Images,
-        allowsEditing: true,
-        quality: 1,
-      });
-
-      if (!result.canceled) {
-        const imageUrl = result.assets[0].uri;
-        const response = await fetch(imageUrl);
-        const blob = await response.blob();
-
-        // Upload the new avatar image to the "userAvatar" folder in Firebase Storage
-        const avatarID = Date.now().toString();
-        const avatarRef = ref(storage, `profilePictures/${avatarID}`);
-        await uploadBytes(avatarRef, blob);
-        const downloadURL = await getDownloadURL(avatarRef);
-
-        // Update the userAvatar collection in Firestore with the new avatar details
-        const userAvatarRef = collection(db, "profilePictures");
-        const querySnapshot = await getDocs(query(userAvatarRef));
-        if (querySnapshot.docs.length > 0) {
-          // Update the existing document
-          const docId = querySnapshot.docs[0].id;
-          const docRef = doc(userAvatarRef, docId);
-          await updateDoc(docRef, { photo: downloadURL });
-        } else {
-          // Create a new document
-          await addDoc(userAvatarRef, { photo: downloadURL });
-        }
-        console.log(downloadURL);
-
-        // Update the local state and Redux store with the new avatar
-        dispatch(
-          updateUserProfile({ photo: downloadURL, userId, login, email })
-        );
-        setLoading(false);
-      }
-    } catch (err) {
-      console.log(err);
-      setLoading(false);
-    }
-  };
-
   const signOut = () => {
     dispatch(authSignOutUser());
   };
@@ -266,16 +163,16 @@ const ProfileScreen = ({ navigation, route }) => {
           />
         </TouchableOpacity>
 
-        {photo ? (
+        {selectedImg ? (
           <View style={styles.imageWrapper}>
-            <Image source={{ uri: photo }} style={styles.imageUser} />
+            <Image source={{ uri: selectedImg }} style={styles.imageUser} />
             <TouchableOpacity onPress={clearPhoto} style={styles.deleteIcon}>
               <Image source={require("../../../assets/delete-icon.png")} />
             </TouchableOpacity>
           </View>
         ) : (
           <View style={styles.imageWrapper}>
-            <TouchableOpacity onPress={updateAvatar} style={styles.addIcon}>
+            <TouchableOpacity onPress={downloadPhoto} style={styles.addIcon}>
               <Image source={require("../../../assets/add.png")} />
             </TouchableOpacity>
           </View>

@@ -1,4 +1,4 @@
-import React, { useState, useCallback } from "react";
+import React, { useState, useCallback, useEffect } from "react";
 import {
   StyleSheet,
   Text,
@@ -19,7 +19,7 @@ import * as ImagePicker from "expo-image-picker";
 import { authSignUpUser } from "../../redux/auth/authOperations";
 
 import { storage } from "../../firebase/config";
-import { uploadBytes, ref, getDownloadURL } from "firebase/storage";
+import { uploadBytesResumable, ref, getDownloadURL } from "firebase/storage";
 
 SplashScreen.preventAutoHideAsync();
 
@@ -27,11 +27,11 @@ const initialState = {
   login: "",
   email: "",
   password: "",
-  imageUri: null,
+  avatar: "",
+  isReady: "",
 };
 
 const RegistrationScreens = ({ navigation }) => {
-  const [photo, setPhoto] = useState(null);
   const [isShowKeyboard, setIsShowKeyboard] = useState(false);
   const [state, setState] = useState(initialState);
   const [isFocus, setIsFocus] = useState({
@@ -39,6 +39,8 @@ const RegistrationScreens = ({ navigation }) => {
     email: false,
     password: false,
   });
+  const [selectedImg, setSelectedImg] = useState(null);
+  const [loading, setLoading] = useState(false);
   const [fontsLoaded] = useFonts({
     "Roboto-Regular": require("../../../assets/fonts/Roboto-Regular.ttf"),
     "Roboto-Medium": require("../../../assets/fonts/Roboto-Medium.ttf"),
@@ -57,52 +59,53 @@ const RegistrationScreens = ({ navigation }) => {
     return null;
   }
 
-  const handleAddImage = async () => {
-    const { status } = await ImagePicker.requestMediaLibraryPermissionsAsync();
-    if (status !== "granted") {
-      alert("Sorry, we need camera roll permissions to make this work!");
-      return;
-    }
+  const downloadPhoto = async () => {
+    try {
+      let result = await ImagePicker.launchImageLibraryAsync({
+        mediaTypes: ImagePicker.MediaTypeOptions.Images,
+        allowsEditing: true,
+        aspect: [4, 3],
+        quality: 1,
+      });
 
-    const result = await ImagePicker.launchImageLibraryAsync({
-      mediaTypes: ImagePicker.MediaTypeOptions.All,
-      allowsEditing: true,
-      aspect: [4, 3],
-      quality: 1,
-    });
-
-    if (result.assets.length > 0) {
-      setPhoto(result.assets[0]);
+      if (!result.canceled) {
+        setSelectedImg(result.assets[0].uri);
+      }
+    } catch (E) {
+      console.log(E);
     }
   };
 
   const uploadPhotoToServer = async () => {
     try {
-      const response = await fetch(photo.uri);
+      setLoading(true);
+      const response = await fetch(selectedImg);
       const file = await response.blob();
-      const avatarId = Date.now().toString();
-      const storageRef = ref(storage, `profilePictures/${avatarId}`);
-      await uploadBytes(storageRef, file);
+      const uniquePhotoId = Date.now().toString();
+
+      const storageRef = ref(storage, `avatar/${uniquePhotoId}`);
+      const result = await uploadBytesResumable(storageRef, file);
       const processedPhoto = await getDownloadURL(storageRef);
-      console.log("processedPhoto", processedPhoto);
+      setLoading(false);
       return processedPhoto;
     } catch (error) {
-      console.log(error.message);
+      console.log("error:", error);
     }
   };
+
   const clearPhoto = () => {
-    setPhoto(null);
+    setSelectedImg(null);
   };
 
   async function handleSubmit() {
     try {
-      const processedPhoto = photo ? await uploadPhotoToServer() : null;
+      const processedPhoto = selectedImg ? await uploadPhotoToServer() : null;
 
       const user = {
         login: state.login,
         email: state.email,
         password: state.password,
-        photo: processedPhoto,
+        avatar: processedPhoto,
       };
 
       dispatch(authSignUpUser(user));
@@ -110,12 +113,43 @@ const RegistrationScreens = ({ navigation }) => {
         login: "",
         email: "",
         password: "",
+        avatar: "",
       });
-      setPhoto(null);
     } catch (error) {
       console.log(error.message);
     }
   }
+
+  // async function submitForm() {
+  //   setLoading(true);
+  //   if (
+  //     dataRegistration.email &&
+  //     dataRegistration.login &&
+  //     dataRegistration.password
+  //   ) {
+  //     if (temtUserPhoto) {
+  //       const photoSt = await uploadPhotoToServer();
+  //       setDataRegistration((prevState) => ({
+  //         ...prevState,
+  //         photo: photoSt,
+  //         isReady: true,
+  //       }));
+  //       setLoading(false);
+  //       setDataRegistration(initialState);
+  //       return;
+  //     } else {
+  //       await dispatch(authSignUp(dataRegistration));
+  //       setDataRegistration(initialState);
+  //     }
+  //   } else {
+  //     dispatch(
+  //       authSlice.actions.authSetError({
+  //         errorMessage: "Please fill in all fields.",
+  //       })
+  //     );
+  //   }
+  //   setLoading(false);
+  // }
 
   return (
     <TouchableWithoutFeedback onPress={Keyboard.dismiss}>
@@ -125,9 +159,9 @@ const RegistrationScreens = ({ navigation }) => {
           source={require("../../../assets/images/photo-bg2x.jpg")}
         >
           <View style={styles.wrapperForm}>
-            {photo ? (
+            {selectedImg ? (
               <View style={styles.imageWrapper}>
-                <Image source={{ uri: photo.uri }} style={styles.imageUser} />
+                <Image source={{ uri: selectedImg }} style={styles.imageUser} />
                 <TouchableOpacity
                   onPress={clearPhoto}
                   style={styles.deleteIcon}
@@ -138,7 +172,7 @@ const RegistrationScreens = ({ navigation }) => {
             ) : (
               <View style={styles.imageWrapper}>
                 <TouchableOpacity
-                  onPress={handleAddImage}
+                  onPress={downloadPhoto}
                   style={styles.addIcon}
                 >
                   <Image source={require("../../../assets/add.png")} />
