@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
 import { useSelector } from "react-redux";
-import { onSnapshot, collection, query } from "firebase/firestore";
+import {  collection, onSnapshot, query} from "firebase/firestore";
 import { db } from "../../../firebase/config";
 import {
   View,
@@ -17,7 +17,7 @@ const DefaultScreenPosts = ({ navigation, route }) => {
   const [posts, setPosts] = useState([]);
   const [commentsCount, setCommentsCount] = useState({});
 
-  const { email, login, photo } = useSelector((state) => state.auth);
+  const { email, login, userAvatar} = useSelector((state) => state.auth);
 
   const getAllPost = async () => {
     try {
@@ -60,11 +60,11 @@ const DefaultScreenPosts = ({ navigation, route }) => {
       setCommentsCount((prev) => ({ ...prev, [postID]: 0 }));
     }
   };
-  console.log(posts);
+  // console.log(posts);
   return (
     <View style={styles.container}>
       <View style={styles.wrapperUser}>
-        <Image source={{ uri: photo }} style={styles.userPhoto} />
+        <Image source={{ uri: userAvatar }} style={styles.userPhoto} />
         <View style={{ flexDirection: "column" }}>
           <Text style={styles.userName}>{login}</Text>
           <Text style={styles.userEmail}>{email}</Text>

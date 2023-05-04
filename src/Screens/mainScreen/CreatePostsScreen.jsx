@@ -36,7 +36,7 @@ const CreatePostsScreen = ({ navigation }) => {
     location: false,
   });
 
-  const { userId, login } = useSelector((state) => state.auth);
+  const { userID, login } = useSelector((state) => state.auth);
 
   useEffect(() => {
     const requestCameraPermission = async () => {
@@ -124,7 +124,7 @@ const CreatePostsScreen = ({ navigation }) => {
       const db = getFirestore();
       const newCollectionRef = collection(db, "posts");
       await addDoc(newCollectionRef, {
-        userId,
+        userID,
         login,
         photo,
         formValues,

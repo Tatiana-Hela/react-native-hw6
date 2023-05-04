@@ -1,4 +1,4 @@
-import React, { useState, useCallback, useEffect } from "react";
+import React, { useState, useCallback } from "react";
 import {
   StyleSheet,
   Text,
@@ -10,7 +10,9 @@ import {
   Keyboard,
   ImageBackground,
   Image,
+  Alert
 } from "react-native";
+import { nanoid } from "nanoid";
 import { useFonts } from "expo-font";
 import * as SplashScreen from "expo-splash-screen";
 import { useDispatch } from "react-redux";
@@ -19,7 +21,13 @@ import * as ImagePicker from "expo-image-picker";
 import { authSignUpUser } from "../../redux/auth/authOperations";
 
 import { storage } from "../../firebase/config";
-import { uploadBytesResumable, ref, getDownloadURL } from "firebase/storage";
+import { ref, getDownloadURL, uploadBytes } from "firebase/storage";
+
+import {
+  loginValidation,
+  passwordValidation,
+  emailValidation,
+} from "../../shared/validation";
 
 SplashScreen.preventAutoHideAsync();
 
@@ -27,8 +35,7 @@ const initialState = {
   login: "",
   email: "",
   password: "",
-  avatar: "",
-  isReady: "",
+  userAvatar: null,
 };
 
 const RegistrationScreens = ({ navigation }) => {
@@ -59,98 +66,57 @@ const RegistrationScreens = ({ navigation }) => {
     return null;
   }
 
-  const downloadPhoto = async () => {
-    try {
-      let result = await ImagePicker.launchImageLibraryAsync({
-        mediaTypes: ImagePicker.MediaTypeOptions.Images,
-        allowsEditing: true,
-        aspect: [4, 3],
-        quality: 1,
-      });
-
-      if (!result.canceled) {
-        setSelectedImg(result.assets[0].uri);
-      }
-    } catch (E) {
-      console.log(E);
-    }
-  };
-
-  const uploadPhotoToServer = async () => {
-    try {
-      setLoading(true);
-      const response = await fetch(selectedImg);
-      const file = await response.blob();
-      const uniquePhotoId = Date.now().toString();
-
-      const storageRef = ref(storage, `avatar/${uniquePhotoId}`);
-      const result = await uploadBytesResumable(storageRef, file);
-      const processedPhoto = await getDownloadURL(storageRef);
-      setLoading(false);
-      return processedPhoto;
-    } catch (error) {
-      console.log("error:", error);
-    }
-  };
-
-  const clearPhoto = () => {
-    setSelectedImg(null);
-  };
-
-  async function handleSubmit() {
-    try {
-      const processedPhoto = selectedImg ? await uploadPhotoToServer() : null;
-
-      const user = {
-        login: state.login,
-        email: state.email,
-        password: state.password,
-        avatar: processedPhoto,
-      };
-
-      dispatch(authSignUpUser(user));
-      setState({
-        login: "",
-        email: "",
-        password: "",
-        avatar: "",
-      });
-    } catch (error) {
-      console.log(error.message);
-    }
+  function submitForm() {
+    if (
+      loginValidation(state) &&
+      passwordValidation(state) &&
+      emailValidation(state)
+    ) {
+      console.log("state in register", state);
+      const formData = { ...state };
+      dispatch(authSignUpUser(formData));
+      setState(initialState);
+    } else return;
   }
 
-  // async function submitForm() {
-  //   setLoading(true);
-  //   if (
-  //     dataRegistration.email &&
-  //     dataRegistration.login &&
-  //     dataRegistration.password
-  //   ) {
-  //     if (temtUserPhoto) {
-  //       const photoSt = await uploadPhotoToServer();
-  //       setDataRegistration((prevState) => ({
-  //         ...prevState,
-  //         photo: photoSt,
-  //         isReady: true,
-  //       }));
-  //       setLoading(false);
-  //       setDataRegistration(initialState);
-  //       return;
-  //     } else {
-  //       await dispatch(authSignUp(dataRegistration));
-  //       setDataRegistration(initialState);
-  //     }
-  //   } else {
-  //     dispatch(
-  //       authSlice.actions.authSetError({
-  //         errorMessage: "Please fill in all fields.",
-  //       })
-  //     );
-  //   }
-  //   setLoading(false);
-  // }
+  async function handleImageUpload() {
+    // request to access image download
+    const permissionResult =
+      await ImagePicker.requestMediaLibraryPermissionsAsync();
+    if (permissionResult.granted === false) {
+      alert("Permission to access camera roll is required!");
+      return;
+    }
 
+    // open gallery to select photo
+    const result = await ImagePicker.launchImageLibraryAsync({
+      mediaTypes: ImagePicker.MediaTypeOptions.Images,
+      allowsEditing: true,
+      quality: 1,
+    });
+
+    if (!result.canceled) {
+      try {
+        const imageUrl = result.assets[0].uri;
+        const response = await fetch(imageUrl);
+        const blob = await response.blob();
+        // download selected photo
+        const avatarID = nanoid();
+        const avatarRef = ref(storage, `temp/${avatarID}`);
+        await uploadBytes(avatarRef, blob);
+        const downloadURL = await getDownloadURL(avatarRef);
+        // additional code for setting avatar
+        setState((prevState) => ({ ...prevState, userAvatar: downloadURL }));
+        Alert.alert("Successfully uploaded");
+      } catch (error) {
+        console.error(error);
+        Alert.alert("Error uploading image");
+      }
+    }
+  }
+    function removeUserAvatarFromRegisterScreen() {
+    setState((prevState) => ({ ...prevState, userAvatar: null }));
+  }
   return (
     <TouchableWithoutFeedback onPress={Keyboard.dismiss}>
       <View style={styles.container} onLayout={onLayoutRootView}>
@@ -159,11 +125,11 @@ const RegistrationScreens = ({ navigation }) => {
           source={require("../../../assets/images/photo-bg2x.jpg")}
         >
           <View style={styles.wrapperForm}>
-            {selectedImg ? (
+            {state.userAvatar ? (
               <View style={styles.imageWrapper}>
-                <Image source={{ uri: selectedImg }} style={styles.imageUser} />
+                <Image source={{ uri: state.userAvatar  }} style={styles.imageUser} />
                 <TouchableOpacity
-                  onPress={clearPhoto}
+                  onPress={removeUserAvatarFromRegisterScreen}
                   style={styles.deleteIcon}
                 >
                   <Image source={require("../../../assets/delete-icon.png")} />
@@ -172,7 +138,7 @@ const RegistrationScreens = ({ navigation }) => {
             ) : (
               <View style={styles.imageWrapper}>
                 <TouchableOpacity
-                  onPress={downloadPhoto}
+                  onPress={handleImageUpload}
                   style={styles.addIcon}
                 >
                   <Image source={require("../../../assets/add.png")} />
@@ -270,7 +236,7 @@ const RegistrationScreens = ({ navigation }) => {
               </KeyboardAvoidingView>
               <TouchableOpacity
                 activeOpacity={0.8}
-                onPress={handleSubmit}
+                onPress={submitForm}
                 style={styles.button}
               >
                 <Text style={styles.textButton}>Register</Text>

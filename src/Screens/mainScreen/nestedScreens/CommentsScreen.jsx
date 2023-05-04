@@ -19,7 +19,14 @@ import { useState, useEffect } from "react";
 import { useSelector } from "react-redux";
 import formatDate from "../../../utils/formatDate";
 
-import { collection, addDoc, onSnapshot, query } from "firebase/firestore";
+import {
+  collection,
+  addDoc,
+  onSnapshot,
+  query,
+  where,
+  getDocs,
+} from "firebase/firestore";
 import { db } from "../../../firebase/config";
 
 const CommentsScreen = ({ route, navigation }) => {
@@ -29,7 +36,7 @@ const CommentsScreen = ({ route, navigation }) => {
   const [commentsCount, setCommentsCount] = useState(0);
 
   const { postID, photo } = route.params;
-  const { login, userId } = useSelector((state) => state.auth);
+  const { login, userAvatar, userID } = useSelector((state) => state.auth);
 
   const keyboardHide = () => {
     Keyboard.dismiss();
@@ -39,22 +46,45 @@ const CommentsScreen = ({ route, navigation }) => {
   const createComment = async () => {
     const date = formatDate(new Date());
     const commentsRef = collection(db, `posts/${postID}/comments`);
-    await addDoc(commentsRef, { comment, login, date });
+    await addDoc(commentsRef, { comment, login, date, userID, user });
     setComment("");
   };
 
   const getAllComments = async () => {
     const commentsQuery = query(collection(db, `posts/${postID}/comments`));
-    onSnapshot(commentsQuery, (data) => {
-      const commentsData = data.docs.map((doc) => ({
-        ...doc.data(),
-        id: doc.id,
-      }));
-      setCommentsArr(commentsData);
-      setCommentsCount(commentsData.length);
+    onSnapshot(commentsQuery, async (data) => {
+      try {
+        const commentsData = [];
+        for (const doc of data.docs) {
+          const commentData = doc.data();
+          console.log("Comment Data:", commentData); // Log the comment data for debugging purposes
+
+          const commentUserID = commentData.userID;
+          if (!commentUserID) {
+            throw new Error("userID is missing in comments data");
+          }
+
+          // Fetch user avatar based on userID from userAvatar collection
+          const userAvatarQuery = query(
+            collection(db, "userAvatar"),
+            where("userID", "==", commentUserID)
+          );
+          const userAvatarSnapshot = await getDocs(userAvatarQuery);
+          if (!userAvatarSnapshot.empty) {
+            const userAvatar = userAvatarSnapshot.docs[0].data().userAvatar;
+            commentData.userAvatar = userAvatar;
+          }
+
+          commentsData.push({ ...commentData, id: doc.id });
+        }
+
+        setCommentsArr(commentsData);
+        setCommentsCount(commentsData.length);
+      } catch (error) {
+        console.error("Error fetching comments:", error);
+      }
     });
   };
-
   useEffect(() => {
     getAllComments();
   }, []);
@@ -62,9 +92,6 @@ const CommentsScreen = ({ route, navigation }) => {
   useEffect(() => {
     navigation.setParams({ commentsCount: commentsCount });
   }, [commentsCount]);
-
-
-
 
   return (
     <TouchableWithoutFeedback onPress={keyboardHide}>
@@ -78,15 +105,28 @@ const CommentsScreen = ({ route, navigation }) => {
           </View>
         )}
         <SafeAreaView style={styles.SafeAreaView}>
-           <ScrollView>
-            {commentsArr.map((item) => (
-              <View style={styles.commentWrapper} key={item.id}>
+        <FlatList
+          data={commentsArr}
+          keyExtractor={(item) => item.id}
+          renderItem={({ item }) => (
+            <View style={styles.commentWrapper}>
+              <View style={{
+                display: "flex",
+                flexDirection: 'row',
+                alignItems: 'center',
+                justifyContent: 'space-between',
+                flexWrap: 'wrap',
+              }}>
+                <View>
+                  <Image source={{ uri: item.userAvatar }} style={{ width: 25, height: 25, marginRight: 15, borderRadius: 5 }} />
+                </View>
                 <Text style={styles.comments}>{item.comment}</Text>
-                <Text style={styles.commentDate}>{item.date}</Text>
               </View>
-            ))}
-          </ScrollView>
-        </SafeAreaView>
+              <Text style={styles.commentDate}>{item.date}</Text>
+            </View>
+          )}
+        />
+      </SafeAreaView>
         <View style={styles.inputContainer}>
           <TextInput
             style={styles.input}
@@ -118,11 +158,11 @@ const styles = StyleSheet.create({
     bottom: 0,
     left: 0,
     right: 0,
-    marginTop:20,
+    marginTop: 20,
     marginBottom: 16,
   },
   input: {
-    width:"100%",
+    width: "100%",
     fontSize: 16,
     lineHeight: 19,
     backgroundColor: "#F6F6F6",
@@ -130,7 +170,7 @@ const styles = StyleSheet.create({
     borderColor: "#E8E8E8",
     borderRadius: 100,
     height: 50,
-    marginLeft:16,
+    marginLeft: 16,
     color: "#212121",
     paddingBottom: 16,
     paddingLeft: 16,
@@ -156,7 +196,7 @@ const styles = StyleSheet.create({
   commentWrapper: {
     marginBottom: 12,
     marginTop: 12,
-    marginLeft:"auto",
+    marginLeft: "auto",
     padding: 16,
     backgroundColor: "rgba(0, 0, 0, 0.03)",
     borderRadius: 6,
