@@ -46,7 +46,7 @@ const CommentsScreen = ({ route, navigation }) => {
   const createComment = async () => {
     const date = formatDate(new Date());
     const commentsRef = collection(db, `posts/${postID}/comments`);
-    await addDoc(commentsRef, { comment, login, date, userID, user });
+    await addDoc(commentsRef, { comment, login, date, userID, userAvatar });
     setComment("");
   };
 
@@ -96,6 +96,8 @@ const CommentsScreen = ({ route, navigation }) => {
   return (
     <TouchableWithoutFeedback onPress={keyboardHide}>
       <View style={styles.container}>
+        <SafeAreaView style={{ flex: 1 }}>
+          {/* <ScrollView> */}
         {!isShowKeyboard && (
           <View style={styles.photoWrapper}>
             <Image
@@ -104,30 +106,48 @@ const CommentsScreen = ({ route, navigation }) => {
             />
           </View>
         )}
-        <SafeAreaView style={styles.SafeAreaView}>
-        <FlatList
-          data={commentsArr}
-          keyExtractor={(item) => item.id}
-          renderItem={({ item }) => (
-            <View style={styles.commentWrapper}>
-              <View style={{
-                display: "flex",
-                flexDirection: 'row',
-                alignItems: 'center',
-                justifyContent: 'space-between',
-                flexWrap: 'wrap',
-              }}>
+        
+          <FlatList
+            data={commentsArr}
+            keyExtractor={(item) => item.id}
+            renderItem={({ item }) => (
+              <View style={{ flexDirection: "row", alignItems: "center" }}>
                 <View>
-                  <Image source={{ uri: item.userAvatar }} style={{ width: 25, height: 25, marginRight: 15, borderRadius: 5 }} />
+                  <Image
+                    source={{ uri: item.userAvatar }}
+                    style={{
+                      width: 50,
+                      height: 50,
+                      marginRight: 5,
+                      borderRadius: "50%",
+                    }}
+                  />
                 </View>
-                <Text style={styles.comments}>{item.comment}</Text>
+                <View>
+                  
+                  <View style={styles.commentWrapper}>
+                    <Text style={{marginBottom:10}}>{item.login}</Text>
+                    <View
+                      style={{
+                        display: "flex",
+                        // flexDirection: "row",
+                        alignItems: "center",
+                        justifyContent: "space-between",
+                        flexWrap: "wrap",
+                      }}
+                    >
+                      
+                      <Text style={styles.comments}>{item.comment}</Text>
+                    </View>
+                    <Text style={styles.commentDate}>{item.date}</Text>
+                  </View>
+                </View>
               </View>
-              <Text style={styles.commentDate}>{item.date}</Text>
-            </View>
-          )}
-        />
-      </SafeAreaView>
-        <View style={styles.inputContainer}>
+            )}
+            />
+            {/* </ScrollView> */}
+        </SafeAreaView>
+        <View style={{...styles.inputContainer, bottom: isShowKeyboard ? 180 : 0}}>
           <TextInput
             style={styles.input}
             placeholder="Comment..."
@@ -151,6 +171,7 @@ const styles = StyleSheet.create({
     flex: 1,
     backgroundColor: "#FFFFFF",
     paddingHorizontal: 16,
+    paddingBottom:80,
   },
   inputContainer: {
     width: "100%",
@@ -194,10 +215,11 @@ const styles = StyleSheet.create({
     height: 240,
   },
   commentWrapper: {
+    maxWidth:320,
     marginBottom: 12,
     marginTop: 12,
-    marginLeft: "auto",
-    padding: 16,
+    paddingVertical:10,
+    paddingHorizontal:16,
     backgroundColor: "rgba(0, 0, 0, 0.03)",
     borderRadius: 6,
   },
@@ -206,11 +228,12 @@ const styles = StyleSheet.create({
     color: "#212121",
     fontSize: 13,
     lineHeight: 18,
+    textAlign: "left",
   },
   commentDate: {
     color: "#BDBDBD",
     fontSize: 10,
     lineHeight: 12,
-    textAlign: "right",
+    textAlign:"right",
   },
 });

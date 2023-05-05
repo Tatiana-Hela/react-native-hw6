@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
 import { useSelector } from "react-redux";
-import {  collection, onSnapshot, query} from "firebase/firestore";
+import { collection, onSnapshot, query } from "firebase/firestore";
 import { db } from "../../../firebase/config";
 import {
   View,
@@ -16,8 +16,9 @@ import { Feather } from "@expo/vector-icons";
 const DefaultScreenPosts = ({ navigation, route }) => {
   const [posts, setPosts] = useState([]);
   const [commentsCount, setCommentsCount] = useState({});
+  const [avatar, setAvatar] = useState(null);
 
-  const { email, login, userAvatar} = useSelector((state) => state.auth);
+  const { email, login, userAvatar } = useSelector((state) => state.auth);
 
   const getAllPost = async () => {
     try {
@@ -36,6 +37,10 @@ const DefaultScreenPosts = ({ navigation, route }) => {
   useEffect(() => {
     getAllPost();
   }, []);
+
+  useEffect(() => {
+    setAvatar(userAvatar); // Replace 'userAvatar' with the actual value from the Redux store
+  }, [userAvatar]);
 
   useEffect(() => {
     if (route.params?.commentsCount) {

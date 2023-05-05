@@ -1,4 +1,4 @@
-import { useSelector } from "react-redux";
+import { useSelector ,useDispatch } from "react-redux";
 import { useState, useEffect } from "react";
 import {
   View,
@@ -9,7 +9,6 @@ import {
   TouchableOpacity,
   FlatList,
 } from "react-native";
-import { useDispatch } from "react-redux";
 import {
   collection,
   getDocs,

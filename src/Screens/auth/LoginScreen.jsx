@@ -64,10 +64,6 @@ const LoginScreen = ({ navigation }) => {
         >
           <View style={styles.wrapperForm}>
             <View style={styles.form}>
-              {/* <Image
-                style={styles.close}
-                source={require("../../assets/X.png")}
-              /> */}
               <Text style={styles.title}>Login</Text>
               <KeyboardAvoidingView
                 behavior={Platform.OS == "ios" ? "padding" : "height"}
