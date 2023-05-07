@@ -1,5 +1,5 @@
-import { useSelector ,useDispatch } from "react-redux";
-import { useState, useEffect } from "react";
+import { useSelector, useDispatch } from "react-redux";
+import { useState, useEffect, useCallback } from "react";
 import { nanoid } from "nanoid";
 import {
   View,
@@ -11,33 +11,28 @@ import {
   SafeAreaView,
   TouchableOpacity,
   ActivityIndicator,
-  Alert
+  Alert,
 } from "react-native";
 import CryptoJS from "crypto-js";
 import sha256 from "crypto-js/sha256";
 import {
- collection,
+  collection,
   query,
   where,
   onSnapshot,
   addDoc,
   getDocs,
   doc,
-  updateDoc
+  updateDoc,
 } from "firebase/firestore";
 
 import { db, storage } from "../../firebase/config";
-import { ref,
-  uploadBytes,
-  getDownloadURL, } from "@firebase/storage";
-import {
-  authLogOutUser
-} from "../../redux/auth/authOperations";
+import { ref, uploadBytes, getDownloadURL } from "@firebase/storage";
+import { authLogOutUser } from "../../redux/auth/authOperations";
 import * as ImagePicker from "expo-image-picker";
 import { authSlice } from "../../redux/auth/authReducer";
 import Icon from "react-native-vector-icons/Feather";
 import { Feather } from "@expo/vector-icons";
-import { MaterialIcons } from '@expo/vector-icons';
 
 const ProfileScreen = ({ navigation, route }) => {
   const dispatch = useDispatch();
@@ -46,7 +41,9 @@ const ProfileScreen = ({ navigation, route }) => {
   const [likesCount, setLikesCount] = useState(0);
   const [loading, setLoading] = useState(false);
 
-  const { userID, login, userAvatar, email } = useSelector((state) => state.auth);
+  const { userID, login, userAvatar, email } = useSelector(
+    (state) => state.auth
+  );
   console.log("userAvatar in profile", userAvatar);
 
   const { updateUserProfile } = authSlice.actions;
@@ -110,8 +107,10 @@ const ProfileScreen = ({ navigation, route }) => {
           console.log("docID", docId);
           // An image with the same hash already exists, use its URL instead of uploading
           const downloadURL = querySnapshot.docs[0].data().userAvatar;
-          dispatch(updateUserProfile({ userAvatar: downloadURL, userID, login, email }));
-          Alert.alert("Image avatar has already been uploaded");
+          dispatch(
+            updateUserProfile({ userAvatar: downloadURL, userID, login, email })
+          );
+          // Alert.alert("Image avatar has already been uploaded");
           setLoading(false);
           return;
         }
@@ -132,22 +131,24 @@ const ProfileScreen = ({ navigation, route }) => {
           userID,
         });
         // setAvatar(downloadURL);
-        dispatch(updateUserProfile({ userAvatar: downloadURL, userID, login, email }));
-        Alert.alert("Image avatar has successfulyuploaded");
+        dispatch(
+          updateUserProfile({ userAvatar: downloadURL, userID, login, email })
+        );
+        // Alert.alert("Image avatar has successfulyuploaded");
         setLoading(false);
       } catch (err) {
         console.log(err);
-        Alert.error('Error uploading avatar')
+        Alert.error("Error uploading avatar");
         setLoading(false);
       }
     }
   };
 
-  useEffect(() => {
-    uploadAvatar();
-  }, [userAvatar]);
-
-
+  useCallback(() =>
+    useEffect(() => {
+      uploadAvatar();
+    }, [userAvatar])
+  );
 
   // Function to handle avatar update in the profile screen
   const updateAvatar = async () => {
@@ -155,7 +156,8 @@ const ProfileScreen = ({ navigation, route }) => {
       setLoading(true);
 
       // Request permission to access the camera roll
-      const permissionResult = await ImagePicker.requestMediaLibraryPermissionsAsync();
+      const permissionResult =
+        await ImagePicker.requestMediaLibraryPermissionsAsync();
       if (permissionResult.granted === false) {
         alert("Permission to access the camera roll is required!");
         setLoading(false);
@@ -194,20 +196,21 @@ const ProfileScreen = ({ navigation, route }) => {
         }
 
         // Update the local state and Redux store with the new avatar
-        dispatch(updateUserProfile({ userAvatar: downloadURL, userID, login, email }));
-        Alert.alert('Image avatar updated successfully')
+        dispatch(
+          updateUserProfile({ userAvatar: downloadURL, userID, login, email })
+        );
+        // Alert.alert("Image avatar updated successfully");
         setLoading(false);
       }
     } catch (err) {
       console.log(err);
-      Alert.error('Error updating avatar')
+      Alert.error("Error updating avatar");
       setLoading(false);
     }
   };
 
-
   const getPostByUserID = async (userID) => {
-    const q = query(collection(db, 'posts'), where('userID', '==', userID));
+    const q = query(collection(db, "posts"), where("userID", "==", userID));
     const querySnapshot = await getDocs(q);
 
     if (!querySnapshot.empty) {
@@ -218,24 +221,23 @@ const ProfileScreen = ({ navigation, route }) => {
   };
 
   const handleLikesCount = async () => {
-    setLikesCount(prevState => prevState + 1);
+    setLikesCount((prevState) => prevState + 1);
 
     try {
       const postRef = await getPostByUserID(userID);
       if (postRef) {
         await updateLikesCount(postRef.id, likesCount + 1);
-        console.log('Likes count updated in Firestore');
-        Alert.alert('Likes count updated in Firestore')
-
+        console.log("Likes count updated in Firestore");
+        Alert.alert("Likes count updated in Firestore");
       }
     } catch (error) {
-      console.error('Error updating likes count:', error);
-      Alert.error('Error updating likes count')
+      console.error("Error updating likes count:", error);
+      Alert.error("Error updating likes count");
     }
   };
 
   const updateLikesCount = async (postID, newLikesCount) => {
-    const postRef = doc(db, 'posts', postID);
+    const postRef = doc(db, "posts", postID);
     await updateDoc(postRef, { likes: newLikesCount });
   };
 
@@ -248,8 +250,8 @@ const ProfileScreen = ({ navigation, route }) => {
           setLikesCount(postData.likes || 0);
         }
       } catch (error) {
-        console.error('Error fetching likes count:', error);
-        Alert.error('Error fetching likes count')
+        console.error("Error fetching likes count:", error);
+        Alert.error("Error fetching likes count");
       }
     };
 
@@ -283,53 +285,59 @@ const ProfileScreen = ({ navigation, route }) => {
     dispatch(authLogOutUser());
   };
 
-
   useEffect(() => {
     getUserPosts();
     return () => getUserPosts();
   }, []);
 
   return (
-   <SafeAreaView style={styles.container}>
+    <SafeAreaView style={styles.container}>
       <ImageBackground
         style={styles.image}
         source={require("../../../assets/images/photo-bg2x.jpg")}
       >
         <View style={styles.contentWrapprer}>
           <TouchableOpacity style={styles.btn} onPress={signOut}>
-            <Feather name="log-out" size={24} color="#981010" />
+            <Feather name="log-out" size={24} color="#BDBDBD" />
           </TouchableOpacity>
-          {!loading ? (
-            <View style={styles.imageWrapper}>
-              <Image
-                source={{ uri: userAvatar }}
-                style={{ width: "100%", height: "100%", overflow: "hidden", borderRadius: 16 }}
+          <View style={styles.imageWrapper}>
+            {!loading ? (
+              <>
+                <Image
+                  source={{ uri: userAvatar }}
+                  style={{
+                    width: "100%",
+                    height: "100%",
+                    overflow: "hidden",
+                    borderRadius: 16,
+                  }}
+                />
+                <TouchableOpacity
+                  style={styles.changeAvatarBtn}
+                  onPress={updateAvatar}
+                >
+                  <Feather name="edit" size={20} color="#FF6C00" />
+                </TouchableOpacity>
+              </>
+            ) : (
+              <ActivityIndicator
+                size={50}
+                color="#FF6C00"
+                style={{
+                  position: "absolute",
+                  top: 0,
+                  left: 0,
+                  right: 0,
+                  bottom: 0,
+                  alignItems: "center",
+                  justifyContent: "flex-start",
+                }}
               />
-              <TouchableOpacity
-                style={styles.changeAvatarBtn}
-                onPress={updateAvatar}
-              >
-                <MaterialIcons name="update" size={24} color="#981010" />
-              </TouchableOpacity>
-            </View>
-          ) : (
-            <ActivityIndicator
-              size={50}
-              color="#0000ff"
-              style={{
-                position: "absolute",
-                top: 0,
-                left: 0,
-                right: 0,
-                bottom: 0,
-                alignItems: "center",
-                justifyContent: "flex-start",
-              }}
-            />
-          )}
+            )}
+          </View>
           <Text style={styles.userName}>{login}</Text>
           {userPosts && userPosts.length > 0 && (
-            <View style={{ flex: 1 }}>
+            <View>
               <FlatList
                 data={userPosts}
                 keyExtractor={(item) => item.id.toString()}
@@ -341,28 +349,34 @@ const ProfileScreen = ({ navigation, route }) => {
                 }}
                 renderItem={({ item }) => {
                   return (
-                    <View
-                      style={{
-                        marginBottom: 10,
-                        borderRadius: 8
-                      }}
-                    >
+                    <View>
                       <Image
                         source={{ uri: item.photo }}
                         style={{
-                          width: '100%',
-                          height: 200,
+                          width: "100%",
+                          height: 240,
                           marginTop: 10,
                           borderRadius: 8,
-                          overflow: 'hidden'
+                          overflow: "hidden",
                         }}
                       />
                       <View style={styles.titleWrapper}>
                         <Text>{item.formValues.title}</Text>
                       </View>
-                      <View style={{ flex: 1, flexDirection: "row" }}>
-                        <View style={{ display: 'flex', flexDirection: 'row', alignItems: 'center', flexGrow: 2 }}>
-                          <View style={styles.commentsCountWrapper}>
+                      <View style={{ flexDirection: "row" }}>
+                        <View
+                          style={{
+                            display: "flex",
+                            flexDirection: "row",
+                            alignItems: "center",
+                          }}
+                        >
+                          <View
+                            style={{
+                              flexDirection: "row",
+                              alignItems: "center",
+                            }}
+                          >
                             <TouchableOpacity
                               onPress={() =>
                                 navigation.navigate("Comments", {
@@ -374,42 +388,48 @@ const ProfileScreen = ({ navigation, route }) => {
                               <Icon
                                 name="message-circle"
                                 size={24}
-                                color="#FF6C00"
+                                color={
+                                  commentsCount[item.id] > 0
+                                    ? "#FF6C00"
+                                    : "#BDBDBD"
+                                }
                               />
                             </TouchableOpacity>
-                            <Text>{commentsCount[item.id] || 0}</Text>
+                            <Text style={styles.commentsCount}>
+                              {commentsCount[item.id] || 0}
+                            </Text>
                           </View>
                           <View style={styles.likesWrapper}>
-                            <TouchableOpacity
-                              onPress={handleLikesCount}
-                            >
-                              <Feather name="thumbs-up" size={24} color="#FF6C00" />
+                            <TouchableOpacity onPress={handleLikesCount}>
+                              <Feather
+                                name="thumbs-up"
+                                size={24}
+                                color={likesCount > 0 ? "#FF6C00" : "#BDBDBD"}
+                              />
                             </TouchableOpacity>
-                            <Text>{likesCount}</Text>
+                            <Text style={styles.likesCount}>{likesCount}</Text>
                           </View>
                         </View>
-
-                        <View style={styles.locationWrapper}>
-                          <TouchableOpacity
-                            onPress={() =>
-                              navigation.navigate("Map", {
-                                location: item.location,
-                                title: item.formValues.title,
-                              })
-                            }
-                          >
-                            <Feather
-                              name="map-pin"
-                              size={18}
-                              color="#BDBDBD"
-                              style={styles.mapIcon}
-                            />
-                          </TouchableOpacity>
-
+                        <TouchableOpacity
+                          activeOpacity={0.8}
+                          style={styles.locationWrapper}
+                          onPress={() =>
+                            navigation.navigate("Map", {
+                              location: item.location,
+                              title: item.formValues.title,
+                            })
+                          }
+                        >
+                          <Feather
+                            name="map-pin"
+                            size={24}
+                            color="#BDBDBD"
+                            style={styles.mapIcon}
+                          />
                           <Text style={styles.locationText}>
                             {item.formValues.location}
                           </Text>
-                        </View>
+                        </TouchableOpacity>
                       </View>
                     </View>
                   );
@@ -446,31 +466,45 @@ const styles = StyleSheet.create({
     borderBottomRightRadius: 0,
   },
 
+  commentsCount: {
+    fontSize: 16,
+    lineHeight: 19,
+    color: "#212121",
+    marginLeft: 9,
+  },
+  likesCount: {
+    fontSize: 16,
+    lineHeight: 19,
+    color: "#212121",
+    marginLeft: 9,
+  },
   userName: {
-    fontFamily: "Roboto",
     fontSize: 30,
     lineHeight: 36,
     fontWeight: "semibold",
     color: "#000000",
     textAlign: "center",
     marginTop: 10,
-    marginBottom: 33,
   },
 
   titleWrapper: {
-    marginTop: 8,
-    marginBottom: 11,
-    width: 300,
-  },
-  locationWrapper: {
-    flex: 1,
-    flexDirection: "row",
-    width: 300,
-  },
-  locationText: {
-    marginLeft: 5,
     fontSize: 16,
     lineHeight: 19,
+    color: "#212121",
+    marginRight: "auto",
+    marginTop: 8,
+  },
+  locationWrapper: {
+    flexDirection: "row",
+    marginLeft: "auto",
+    alignItems: "center",
+  },
+  locationText: {
+    fontSize: 16,
+    lineHeight: 19,
+    color: "#212121",
+    marginLeft: 8,
+    textDecorationLine: "underline",
   },
 
   btn: {
@@ -479,12 +513,10 @@ const styles = StyleSheet.create({
     top: 22,
   },
 
-  commentsCountWrapper: {
-    flexDirection: "row",
-    marginRight: 24,
-  },
   likesWrapper: {
     flexDirection: "row",
+    alignItems: "center",
+    marginLeft: 14,
   },
 
   imageWrapper: {
@@ -498,9 +530,14 @@ const styles = StyleSheet.create({
   },
 
   changeAvatarBtn: {
+    borderWidth: 1,
+    borderColor: "#FF6C00",
+    padding: 6,
+    borderRadius: "50%",
+    backgroundColor: "#fff",
     position: "absolute",
-    top: "-15%",
-    left: "90%",
+    top: "65%",
+    left: "87%",
     fontSize: 16,
     lineHeight: 19,
   },

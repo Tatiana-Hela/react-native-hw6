@@ -113,21 +113,22 @@ const DefaultScreenPosts = ({ navigation, route }) => {
                   {commentsCount[item.id] || 0}
                 </Text>
               </View>
-              <View style={{ flexDirection: "row", alignItems: "center" }}>
-                <TouchableOpacity
-                  onPress={() =>
-                    navigation.navigate("Map", {
-                      location: item.location,
-                      title: item.formValues.title,
-                    })
-                  }
-                >
-                  <Feather name="map-pin" size={24} color="#BDBDBD" />
-                </TouchableOpacity>
+
+              <TouchableOpacity
+                activeOpacity={0.8}
+                style={{ flexDirection: "row", alignItems: "center" }}
+                onPress={() =>
+                  navigation.navigate("Map", {
+                    location: item.location,
+                    title: item.formValues.title,
+                  })
+                }
+              >
+                <Feather name="map-pin" size={24} color="#BDBDBD" />
                 <Text style={styles.locationText}>
                   {item.formValues.location}
                 </Text>
-              </View>
+              </TouchableOpacity>
             </View>
           </View>
         )}

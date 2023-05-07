@@ -13,7 +13,7 @@ import {
 } from "react-native";
 
 import { useDispatch } from "react-redux";
-import { authSignInUser } from "../../redux/auth/authOperations";
+import { authLoginUser } from "../../redux/auth/authOperations";
 
 import { useFonts } from "expo-font";
 import * as SplashScreen from "expo-splash-screen";
@@ -50,7 +50,7 @@ const LoginScreen = ({ navigation }) => {
 
   function handleSubmit() {
     setIsShowKeyboard(false);
-    dispatch(authSignInUser(state));
+    dispatch(authLoginUser(state));
     console.log(state);
     setState(initialState);
   }

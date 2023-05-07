@@ -10,7 +10,7 @@ import {
   Keyboard,
   ImageBackground,
   Image,
-  Alert
+  Alert,
 } from "react-native";
 import { nanoid } from "nanoid";
 import { useFonts } from "expo-font";
@@ -114,7 +114,7 @@ const RegistrationScreens = ({ navigation }) => {
       }
     }
   }
-    function removeUserAvatarFromRegisterScreen() {
+  function removeUserAvatarFromRegisterScreen() {
     setState((prevState) => ({ ...prevState, userAvatar: null }));
   }
   return (
@@ -127,7 +127,10 @@ const RegistrationScreens = ({ navigation }) => {
           <View style={styles.wrapperForm}>
             {state.userAvatar ? (
               <View style={styles.imageWrapper}>
-                <Image source={{ uri: state.userAvatar  }} style={styles.imageUser} />
+                <Image
+                  source={{ uri: state.userAvatar }}
+                  style={styles.imageUser}
+                />
                 <TouchableOpacity
                   onPress={removeUserAvatarFromRegisterScreen}
                   style={styles.deleteIcon}
@@ -266,7 +269,6 @@ const styles = StyleSheet.create({
     flex: 1,
     resizeMode: "cover",
     justifyContent: "flex-end",
-    // alignItems: "center",
   },
   title: {
     textAlign: "center",
