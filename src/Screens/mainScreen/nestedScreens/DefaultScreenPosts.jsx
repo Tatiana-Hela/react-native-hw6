@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 import { useSelector } from "react-redux";
 import { collection, onSnapshot, query } from "firebase/firestore";
 import { db } from "../../../firebase/config";
@@ -38,9 +38,11 @@ const DefaultScreenPosts = ({ navigation, route }) => {
     getAllPost();
   }, []);
 
-  useEffect(() => {
-    setAvatar(userAvatar); // Replace 'userAvatar' with the actual value from the Redux store
-  }, [userAvatar]);
+  useCallback(() => {
+    useEffect(() => {
+      setAvatar(userAvatar); // Replace 'userAvatar' with the actual value from the Redux store
+    }, [userAvatar]);
+  });
 
   useEffect(() => {
     if (route.params?.commentsCount) {

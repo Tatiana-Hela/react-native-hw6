@@ -144,11 +144,11 @@ const ProfileScreen = ({ navigation, route }) => {
     }
   };
 
-  useCallback(() =>
+  useCallback(() => {
     useEffect(() => {
       uploadAvatar();
-    }, [userAvatar])
-  );
+    }, [userAvatar]);
+  });
 
   // Function to handle avatar update in the profile screen
   const updateAvatar = async () => {
@@ -360,15 +360,16 @@ const ProfileScreen = ({ navigation, route }) => {
                           overflow: "hidden",
                         }}
                       />
-                      <View style={styles.titleWrapper}>
-                        <Text>{item.formValues.title}</Text>
-                      </View>
+                      <Text style={styles.titleWrapper}>
+                        {item.formValues.title}
+                      </Text>
                       <View style={{ flexDirection: "row" }}>
                         <View
                           style={{
                             display: "flex",
                             flexDirection: "row",
                             alignItems: "center",
+                            marginTop:11,
                           }}
                         >
                           <View
@@ -399,7 +400,7 @@ const ProfileScreen = ({ navigation, route }) => {
                               {commentsCount[item.id] || 0}
                             </Text>
                           </View>
-                          <View style={styles.likesWrapper}>
+                          {/* <View style={styles.likesWrapper}>
                             <TouchableOpacity onPress={handleLikesCount}>
                               <Feather
                                 name="thumbs-up"
@@ -408,7 +409,7 @@ const ProfileScreen = ({ navigation, route }) => {
                               />
                             </TouchableOpacity>
                             <Text style={styles.likesCount}>{likesCount}</Text>
-                          </View>
+                          </View> */}
                         </View>
                         <TouchableOpacity
                           activeOpacity={0.8}
